@@ -22,7 +22,7 @@ const keys = {};
 const items = [];
 let itemWidth = 40;
 let itemHeight = 40;
-let itemSpeed = 2;
+let itemSpeed = 9;
 const itemTypes = []; // Array to hold item images
 
 // Load images
@@ -33,7 +33,7 @@ const backgroundImage = new Image();
 backgroundImage.src = 'assets/background_kate.png';
 
 // Load item images
-for (let i = 1; i <= 10; i++) {
+for (let i = 1; i <= 15; i++) {
   const img = new Image();
   img.src = `assets/item${i}.png`;
   itemTypes.push(img);
