@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pipeline Perfection</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="gameContainer">
+    <header>
+      <h1>Pipeline Perfection</h1>
+      <div id="statusBar">
+        <div>Integrity: <span id="integrity">100%</span></div>
+        <div>Optimization Points: <span id="optimization">0</span></div>
+        <div>Time Remaining: <span id="timeRemaining">5:00</span></div>
+      </div>
+    </header>
+    <main>
+      <div id="modelReception">
+        <h2>Incoming Models</h2>
+        <div id="modelsContainer">
+          <!-- Incoming models will appear here -->
+        </div>
+      </div>
+      <div id="stations">
+        <div class="station" id="polygonReduction">
+          <h3>Polygon Reduction</h3>
+          <div class="queue" id="polygonReductionQueue">
+            <!-- Models assigned to Polygon Reduction -->
+          </div>
+        </div>
+        <div class="station" id="pivotPoints">
+          <h3>Pivot Points & Parenting</h3>
+          <div class="queue" id="pivotPointsQueue">
+            <!-- Models assigned to Pivot Points -->
+          </div>
+        </div>
+        <div class="station" id="materialsTextures">
+          <h3>Materials & Textures</h3>
+          <div class="queue" id="materialsTexturesQueue">
+            <!-- Models assigned to Materials & Textures -->
+          </div>
+        </div>
+      </div>
+      <div id="clientReview">
+        <h2>Client Review</h2>
+        <div id="reviewContainer">
+          <!-- Processed models go here -->
+        </div>
+      </div>
+    </main>
+    <div id="gameOverScreen" class="hidden">
+      <div class="gameOverContent">
+        <h2 id="gameOverMessage">Game Over!</h2>
+        <p>Your Integrity has dropped to 0%.</p>
+        <button id="restartBtn">Play Again</button>
+      </div>
+    </div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
