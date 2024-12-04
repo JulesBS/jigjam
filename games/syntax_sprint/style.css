@@ -1,0 +1,42 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f0f0f0;
+}
+
+#gameContainer {
+  text-align: center;
+  margin-top: 50px;
+}
+
+#menu, #gameOverScreen {
+  display: inline-block;
+}
+
+#gameCanvas {
+  border: 1px solid #000;
+}
+
+.difficulty-selection {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.difficulty-selection img {
+  width: 150px;
+  height: 150px;
+  margin: 0 20px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.difficulty-selection img:hover {
+  transform: scale(1.1);
+}
+
+button {
+  padding: 10px 20px;
+  margin: 10px;
+  font-size: 16px;
+}
