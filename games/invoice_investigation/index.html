@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Invoice Investigation</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="gameContainer">
+    <header>
+      <h1>Invoice Memory Match</h1>
+      <div id="scoreBoard">
+        <span id="moves">Moves: 0</span>
+        <span id="timer">Time: 0s</span>
+      </div>
+    </header>
+    <div id="gameBoard"></div>
+    <div id="gameOverScreen" style="display: none;">
+      <h2>Congratulations!</h2>
+      <p>Your Score: <span id="finalScore"></span></p>
+      <p>High Score: <span id="highScore"></span></p>
+      <button id="restartBtn">Play Again</button>
+    </div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
