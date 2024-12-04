@@ -22,7 +22,7 @@ const keys = {};
 const items = [];
 let itemWidth = 40;
 let itemHeight = 40;
-let itemSpeed = 3; // Set initial speed to 3
+let itemSpeed = 2; // Set initial speed to 3
 const itemTypes = []; // Array to hold item images
 
 // Load images
@@ -139,7 +139,7 @@ function update() {
   updateItems();
 
   // Increase difficulty over time
-  itemSpeed += 0.002; // Smaller increment for gradual acceleration
+  itemSpeed += 0.0005; // Smaller increment for gradual acceleration
 
   // Limit the maximum itemSpeed
   if (itemSpeed > 10) {
