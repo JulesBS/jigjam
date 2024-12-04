@@ -139,7 +139,7 @@ function update() {
   updateItems();
 
   // Increase difficulty over time
-  itemSpeed += 0.001; // Adjust the increment as needed
+  itemSpeed += 0.1; // Adjust the increment as needed
 
   // Spawn new items at intervals
   if (Math.random() < 0.02) {
@@ -206,7 +206,7 @@ function gameLoop() {
         gameRunning = true;
         score = 0;
         lives = 3;
-        itemSpeed = 2;
+        itemSpeed = 1;
         items.length = 0; // Clear items
         // Remove the event listener to prevent multiple triggers
         document.removeEventListener('keydown', restartGame);
