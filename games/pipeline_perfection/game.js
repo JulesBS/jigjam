@@ -33,7 +33,7 @@ function initGame() {
   });
 
   // Hide Game Over Screen
-  gameOverScreen.classList.add('hidden');
+  gameOverScreen.style.display = "none";
 
   // Clear any existing model arrival timers
   clearInterval(modelArrivalTimer);
@@ -254,7 +254,7 @@ function startModelTimer(modelDiv) {
     if (!modelDiv.classList.contains('processing')) {
       remainingTime--;
       console.log(`Model ${modelDiv.getAttribute('data-model-id')} remaining time: ${remainingTime}`);
-
+      console.log(`TIMER:: ${remainingTime}`);
       if (remainingTime <= 0) {
         clearInterval(timerInterval);
         endGame(`Model ${modelDiv.getAttribute('data-model-id')} has been idle for too long.`);
@@ -367,7 +367,8 @@ function endGame(message) {
     clearInterval(modelDiv.timerInterval);
   });
   gameOverMessage.textContent = message;
-  gameOverScreen.classList.remove('hidden');
+  gameOverScreen.style.display = "flex";
+
   console.log('Game Over:', message);
 }
 
