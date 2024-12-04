@@ -9,10 +9,10 @@ let highScore = localStorage.getItem('kateKatcherHighScore') || 0;
 let lives = 3;
 
 // Player (Kate) properties
-const kateWidth = 80;
-const kateHeight = 80;
-let kateX = canvas.width / 2 - kateWidth / 2;
-let kateY = canvas.height - kateHeight - 10;
+let kateWidth = 80;
+let kateHeight = 80;
+let kateX = 0;
+let kateY = 0;
 let kateSpeed = 7;
 
 // Keyboard input
@@ -20,8 +20,8 @@ const keys = {};
 
 // Falling items
 const items = [];
-const itemWidth = 40;
-const itemHeight = 40;
+let itemWidth = 40;
+let itemHeight = 40;
 let itemSpeed = 2;
 const itemTypes = []; // Array to hold item images
 
@@ -39,8 +39,18 @@ for (let i = 1; i <= 10; i++) {
   itemTypes.push(img);
 }
 
+// Load sounds
+const catchSound = new Audio('assets/catch.mp3');
+const missSound = new Audio('assets/miss.mp3');
+const gameOverSound = new Audio('assets/game_over.mp3');
+
+// Event listeners for keyboard input and mouse movement
 document.addEventListener('keydown', function (e) {
   keys[e.code] = true;
+});
+
+document.addEventListener('keyup', function (e) {
+  keys[e.code] = false;
 });
 
 document.addEventListener('mousemove', function (e) {
@@ -52,19 +62,36 @@ document.addEventListener('mousemove', function (e) {
   if (kateX > canvas.width - kateWidth) kateX = canvas.width - kateWidth;
 });
 
-document.addEventListener('keyup', function (e) {
-  keys[e.code] = false;
-});
+// Resize canvas and adjust game elements
+function resizeCanvas() {
+  const aspectRatio = 4 / 3;
+  const width = window.innerWidth * 0.8;
+  const height = width / aspectRatio;
+  canvas.width = width;
+  canvas.height = height;
+
+  // Adjust Kate's size and position
+  kateWidth = 80 * (canvas.width / 800) * 1.5; // Increased by 1.5x
+  kateHeight = 80 * (canvas.height / 600) * 1.5;
+  kateX = canvas.width / 2 - kateWidth / 2;
+  kateY = canvas.height - kateHeight - 10;
+
+  // Adjust item sizes
+  itemWidth = 40 * (canvas.width / 800) * 2; // Increased by 2x
+  itemHeight = 40 * (canvas.height / 600) * 2;
+}
+
+window.addEventListener('load', resizeCanvas);
+window.addEventListener('resize', resizeCanvas);
 
 function spawnItem() {
   const x = Math.random() * (canvas.width - itemWidth);
   const y = -itemHeight;
   const typeIndex = Math.floor(Math.random() * itemTypes.length);
-  items.push({ x, y, image: itemTypes[typeIndex] });
   const itemValue = typeIndex + 1; // Assign value based on item type
-items.push({ x, y, image: itemTypes[typeIndex], value: itemValue });
-
+  items.push({ x, y, image: itemTypes[typeIndex], value: itemValue });
 }
+
 function updateItems() {
   items.forEach((item, index) => {
     item.y += itemSpeed;
@@ -79,16 +106,20 @@ function updateItems() {
       // Caught the item
       items.splice(index, 1);
       score += 1;
+      catchSound.play();
     } else if (item.y > canvas.height) {
       // Missed the item
       items.splice(index, 1);
       lives -= 1;
+      missSound.play();
       if (lives <= 0) {
+        gameOverSound.play();
         gameRunning = false;
       }
     }
   });
 }
+
 function drawItems() {
   items.forEach((item) => {
     ctx.drawImage(item.image, item.x, item.y, itemWidth, itemHeight);
@@ -96,7 +127,7 @@ function drawItems() {
 }
 
 function update() {
-  // Move Kate
+  // Move Kate with keyboard
   if (keys['ArrowLeft'] && kateX > 0) {
     kateX -= kateSpeed;
   }
@@ -145,7 +176,6 @@ function draw() {
   ctx.fillText('High Score: ' + highScore, 10, 90);
 }
 
-
 function gameLoop() {
   if (gameRunning) {
     update();
@@ -170,7 +200,7 @@ function gameLoop() {
     ctx.fillText('Press Enter to Restart', canvas.width / 2 - 130, canvas.height / 2 + 60);
 
     // Listen for Enter key to restart
-    document.addEventListener('keydown', function restartGame(e) {
+    function restartGame(e) {
       if (e.code === 'Enter') {
         // Reset game variables
         gameRunning = true;
@@ -183,34 +213,15 @@ function gameLoop() {
         // Restart the game loop
         gameLoop();
       }
-    });
+    }
+    document.addEventListener('keydown', restartGame);
   }
 }
 
 // Start the game
-gameLoop();
-
-// GAME DIFFICULTY
-
-itemSpeed += 0.001; // Increase value for faster difficulty ramp-up
-
-if (Math.random() < 0.02) { // Increase value for more items
-  spawnItem();
+function startGame() {
+  resizeCanvas();
+  gameLoop();
 }
 
-// SOUNDS
-
-const catchSound = new Audio('assets/catch.mp3');
-const missSound = new Audio('assets/miss.mp3');
-const gameOverSound = new Audio('assets/game_over.mp3');
-
-// When catching an item
-catchSound.play();
-
-// When missing an item
-missSound.play();
-
-// When the game is over
-gameOverSound.play();
-
-
+startGame();
