@@ -1,29 +1,22 @@
 // DOM Elements
-const integrityDisplay = document.getElementById('integrity');
-const optimizationDisplay = document.getElementById('optimization');
-const timeDisplay = document.getElementById('timeRemaining');
+const successCountDisplay = document.getElementById('successCount');
 const modelsContainer = document.getElementById('modelsContainer');
 const reviewContainer = document.getElementById('reviewContainer');
 const gameOverScreen = document.getElementById('gameOverScreen');
-const gameOverMessage = document.getElementById('gameOverMessage');
+const gameOverMessage = document.querySelector('.gameOverContent p');
 const restartBtn = document.getElementById('restartBtn');
 
 // Game Variables
-let integrity = 100;
-let optimization = 0;
-let timeRemaining = 300; // 5 minutes in seconds
-let gameInterval;
+let successCount = 0;
 let modelIdCounter = 1;
+let modelArrivalTimer; // Declare at the top
 const modelArrivalInterval = 5000; // New model every 5 seconds
 const maxQueuePerStation = 3;
-const modelIdleTimeLimit = 30; // 30 seconds
 const stations = ['polygonReduction', 'pivotPoints', 'materialsTextures'];
 
 // Initialize Game
 function initGame() {
-  integrity = 100;
-  optimization = 0;
-  timeRemaining = 300;
+  successCount = 0;
   modelIdCounter = 1;
 
   // Clear Containers
@@ -39,45 +32,17 @@ function initGame() {
   // Hide Game Over Screen
   gameOverScreen.classList.add('hidden');
 
-  // Start Timers
-  clearInterval(gameInterval);
+  // Clear any existing model arrival timers
   clearInterval(modelArrivalTimer);
-  gameInterval = setInterval(gameLoop, 1000); // Update every second
 
   // Start Model Arrival
   modelArrivalTimer = setInterval(generateModel, modelArrivalInterval);
 
+  // Update Success Count Display
+  successCountDisplay.textContent = successCount;
+
   console.log('Game Initialized');
 }
-
-// Game Loop
-function gameLoop() {
-  timeRemaining--;
-  updateTimeDisplay();
-
-  if (timeRemaining <= 0) {
-    endGame('Time\'s up! You failed to optimize all models.');
-    return;
-  }
-
-  // Check for Idle Models
-  stations.forEach(station => {
-    const queue = document.getElementById(`${station}Queue`);
-    queue.childNodes.forEach(modelDiv => {
-      const idleTime = parseInt(modelDiv.getAttribute('data-idle-time'));
-      if (!modelDiv.classList.contains('processing')) {
-        modelDiv.setAttribute('data-idle-time', idleTime + 1);
-        console.log(`Model ${modelDiv.getAttribute('data-model-id')} in ${formatStationName(station)} idle for ${idleTime + 1} seconds`);
-        if (idleTime + 1 >= modelIdleTimeLimit) {
-          endGame(`Model ${modelDiv.getAttribute('data-model-id')} in ${formatStationName(station)} has been idle for too long.`);
-        }
-      }
-    });
-  });
-}
-
-// Model Arrival Timer
-let modelArrivalTimer;
 
 // Generate a New Model
 function generateModel() {
@@ -88,21 +53,14 @@ function generateModel() {
 
 // Create Model Object
 function createModel(id) {
-  const needs = {
-    polygonReduction: Math.random() < 0.5, // 50% chance
-    pivotPoints: Math.random() < 0.5,
-    materialsTextures: Math.random() < 0.5
+  // Initialize each need with a random completion between 5% and 100%
+  const initialCompletion = {
+    polygonReduction: getRandomInt(5, 100),
+    pivotPoints: getRandomInt(5, 100),
+    materialsTextures: getRandomInt(5, 100)
   };
 
-  // Ensure at least one need is true to avoid models with no requirements
-  if (!needs.polygonReduction && !needs.pivotPoints && !needs.materialsTextures) {
-    const randomNeed = getRandomInt(0, 2);
-    if (randomNeed === 0) needs.polygonReduction = true;
-    else if (randomNeed === 1) needs.pivotPoints = true;
-    else needs.materialsTextures = true;
-  }
-
-  return { id, needs };
+  return { id, initialCompletion };
 }
 
 // Display Model in Reception Area
@@ -111,38 +69,23 @@ function displayModel(model) {
   modelDiv.classList.add('model');
   modelDiv.setAttribute('draggable', true);
   modelDiv.setAttribute('data-model-id', model.id);
-  modelDiv.setAttribute('data-idle-time', '0');
+  modelDiv.setAttribute('data-idle-time', '0'); // Initialize idle time
 
-  // Create Progress Bars
-  const progressBarContainer = document.createElement('div');
-  progressBarContainer.classList.add('progressBarContainer');
-
-  ['polygonReduction', 'pivotPoints', 'materialsTextures'].forEach(requirement => {
-    if (model.needs[requirement]) {
-      const progressBar = document.createElement('div');
-      progressBar.classList.add('progressBar');
-
-      const fill = document.createElement('div');
-      fill.classList.add('fill');
-      progressBar.appendChild(fill);
-
-      progressBarContainer.appendChild(progressBar);
-    }
-  });
-
-  modelDiv.appendChild(progressBarContainer);
+  // Create Circular Timer
+  const timerDiv = document.createElement('div');
+  timerDiv.classList.add('circularTimer');
+  timerDiv.textContent = '60'; // Start at 60 seconds
+  modelDiv.appendChild(timerDiv);
 
   // Display Needs as Title Tooltip
-  let needsText = '';
-  const needsArray = [];
-  if (model.needs.polygonReduction) needsArray.push('Polygon Reduction');
-  if (model.needs.pivotPoints) needsArray.push('Pivot Points & Parenting');
-  if (model.needs.materialsTextures) needsArray.push('Materials & Textures');
-  needsText = needsArray.join(', ');
+  let needsText = 'All Optimization Needs';
   modelDiv.title = `Model ${model.id}: ${needsText}`;
 
   // Add Drag Event Listeners
   modelDiv.addEventListener('dragstart', dragStart);
+
+  // Start Individual Timer
+  startModelTimer(modelDiv);
 
   modelsContainer.appendChild(modelDiv);
 }
@@ -150,6 +93,13 @@ function displayModel(model) {
 // Drag Functions
 function dragStart(e) {
   e.dataTransfer.setData('text/plain', e.target.getAttribute('data-model-id'));
+
+  // Pause the model's timer when being dragged
+  const modelId = e.target.getAttribute('data-model-id');
+  const modelDiv = document.querySelector(`.model[data-model-id='${modelId}']`);
+  if (modelDiv) {
+    pauseModelTimer(modelDiv);
+  }
 }
 
 // Allow Drop on Stations
@@ -188,6 +138,9 @@ function assignModelToStation(modelId, station) {
     // Reset Idle Time
     modelDiv.setAttribute('data-idle-time', '0');
 
+    // Resume Model Timer
+    resumeModelTimer(modelDiv);
+
     // Start Processing
     startProcessing(modelDiv, station);
     console.log(`Model ${modelId} assigned to ${formatStationName(station)}`);
@@ -199,36 +152,13 @@ function startProcessing(modelDiv, station) {
   modelDiv.classList.add('processing');
   console.log(`Model ${modelDiv.getAttribute('data-model-id')} started processing at ${formatStationName(station)}`);
 
-  // Initialize Progress Bars
-  const progressBars = modelDiv.querySelectorAll('.progressBar .fill');
-  progressBars.forEach(fill => {
-    fill.style.width = '0%';
-    fill.style.backgroundColor = '#000';
-  });
-
-  const processingTime = 10; // Processing time in seconds
-
-  let currentSecond = 0;
-  const progressInterval = setInterval(() => {
-    currentSecond++;
-    const progressPercentage = (currentSecond / processingTime) * 100;
-
-    progressBars.forEach(fill => {
-      if (progressPercentage >= 100) {
-        fill.style.width = '100%';
-        fill.style.backgroundColor = 'green';
-      } else {
-        fill.style.width = `${progressPercentage}%`;
-      }
-    });
-
-    if (currentSecond >= processingTime) {
-      clearInterval(progressInterval);
-      modelDiv.classList.remove('processing');
-      console.log(`Model ${modelDiv.getAttribute('data-model-id')} completed processing at ${formatStationName(station)}`);
-      completeProcessing(modelDiv, station);
-    }
-  }, 1000); // Update every second
+  // Simulate Processing Time
+  const processingTime = 10000; // 10 seconds in milliseconds
+  setTimeout(() => {
+    modelDiv.classList.remove('processing');
+    console.log(`Model ${modelDiv.getAttribute('data-model-id')} completed processing at ${formatStationName(station)}`);
+    completeProcessing(modelDiv, station);
+  }, processingTime);
 }
 
 // Complete Processing a Model
@@ -252,6 +182,9 @@ function completeProcessing(modelDiv, station) {
     nextQueue.appendChild(modelDiv);
     modelDiv.setAttribute('data-idle-time', '0');
 
+    // Resume Model Timer
+    resumeModelTimer(modelDiv);
+
     // Start Processing at Next Station
     startProcessing(modelDiv, nextStation);
     console.log(`Model ${modelId} moved to ${formatStationName(nextStation)}`);
@@ -259,51 +192,103 @@ function completeProcessing(modelDiv, station) {
     // Send to Client Review
     reviewContainer.appendChild(modelDiv);
 
-    // Update Scores
-    optimization += 10; // Arbitrary points per model
-    updateStatusBar();
-    console.log(`Model ${modelId} sent to Client Review. Optimization Points: ${optimization}`);
+    // Increment Success Count
+    successCount++;
+    successCountDisplay.textContent = successCount;
+
+    console.log(`Model ${modelId} sent to Client Review. Total Success: ${successCount}`);
+
+    // Stop and Remove Model Timer
+    stopModelTimer(modelDiv);
 
     // Remove Model from Station Queue
     const queue = document.getElementById(`${station}Queue`);
     queue.removeChild(modelDiv);
-
-    // Optionally, check for win condition here
-    // For example, after processing a certain number of models
   }
 }
 
-// Update Time Display
-function updateTimeDisplay() {
-  const minutes = Math.floor(timeRemaining / 60);
-  const seconds = timeRemaining % 60;
-  timeDisplay.textContent = `${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+// Start Individual Model Timer
+function startModelTimer(modelDiv) {
+  let remainingTime = 60; // 60 seconds
+  const timerDiv = modelDiv.querySelector('.circularTimer');
+  timerDiv.textContent = remainingTime;
+
+  // Initialize Timer Interval
+  const timerInterval = setInterval(() => {
+    // If model is being processed, do not decrement
+    if (!modelDiv.classList.contains('processing')) {
+      remainingTime--;
+      if (remainingTime <= 0) {
+        clearInterval(timerInterval);
+        endGame(`Model ${modelDiv.getAttribute('data-model-id')} has been idle for too long.`);
+      } else {
+        // Update Circular Timer
+        const percentage = (remainingTime / 60) * 100;
+        timerDiv.style.background = `conic-gradient(#ff0000 ${percentage}%, #ccc ${percentage}% 100%)`;
+        timerDiv.textContent = remainingTime;
+      }
+    }
+  }, 1000); // Every second
+
+  // Store Interval ID on the modelDiv for future reference
+  modelDiv.timerInterval = timerInterval;
 }
 
-// Format Station Name
-function formatStationName(station) {
-  switch (station) {
-    case 'polygonReduction':
-      return 'Polygon Reduction';
-    case 'pivotPoints':
-      return 'Pivot Points & Parenting';
-    case 'materialsTextures':
-      return 'Materials & Textures';
-    default:
-      return station;
+// Pause Model Timer
+function pauseModelTimer(modelDiv) {
+  clearInterval(modelDiv.timerInterval);
+  const timerDiv = modelDiv.querySelector('.circularTimer');
+  timerDiv.classList.add('paused');
+}
+
+// Resume Model Timer
+function resumeModelTimer(modelDiv) {
+  const timerDiv = modelDiv.querySelector('.circularTimer');
+  timerDiv.classList.remove('paused');
+
+  // Retrieve remaining time
+  let remainingTime = parseInt(timerDiv.textContent);
+  if (isNaN(remainingTime)) {
+    remainingTime = 60;
+    timerDiv.textContent = remainingTime;
   }
+
+  // Restart Timer
+  const timerInterval = setInterval(() => {
+    // If model is being processed, do not decrement
+    if (!modelDiv.classList.contains('processing')) {
+      remainingTime--;
+      if (remainingTime <= 0) {
+        clearInterval(timerInterval);
+        endGame(`Model ${modelDiv.getAttribute('data-model-id')} has been idle for too long.`);
+      } else {
+        // Update Circular Timer
+        const percentage = (remainingTime / 60) * 100;
+        timerDiv.style.background = `conic-gradient(#ff0000 ${percentage}%, #ccc ${percentage}% 100%)`;
+        timerDiv.textContent = remainingTime;
+      }
+    }
+  }, 1000); // Every second
+
+  // Update the interval ID
+  modelDiv.timerInterval = timerInterval;
 }
 
-// Update Status Bar
-function updateStatusBar() {
-  integrityDisplay.textContent = integrity + '%';
-  optimizationDisplay.textContent = optimization;
+// Stop Model Timer (when sent to Client Review)
+function stopModelTimer(modelDiv) {
+  clearInterval(modelDiv.timerInterval);
+  const timerDiv = modelDiv.querySelector('.circularTimer');
+  timerDiv.style.background = `conic-gradient(#00ff00 100%, #ccc 100% 100%)`; // Green full circle
+  timerDiv.textContent = '✓'; // Checkmark to indicate success
 }
 
 // End Game
 function endGame(message) {
-  clearInterval(gameInterval);
   clearInterval(modelArrivalTimer);
+  // Stop all model timers
+  document.querySelectorAll('.model').forEach(modelDiv => {
+    clearInterval(modelDiv.timerInterval);
+  });
   gameOverMessage.textContent = message;
   gameOverScreen.classList.remove('hidden');
   console.log('Game Over:', message);
