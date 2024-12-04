@@ -8,9 +8,9 @@ let score = 0;
 let highScore = localStorage.getItem('salesFishHighScore') || 0;
 let lives = 3;
 
-// Boat properties
-const boatWidth = 200;
-const boatHeight = 100;
+// Boat properties (doubled in size)
+const boatWidth = 400;
+const boatHeight = 200;
 let boatX = 0;
 const boatY = 0; // Boat is at the top
 
@@ -25,11 +25,11 @@ let maxLineLength = 0;
 // Keyboard input
 const keys = {};
 
-// Underwater clients
+// Underwater clients (doubled in size)
 const goodClients = [];
 const badClients = [];
-const clientWidth = 50;
-const clientHeight = 50;
+const clientWidth = 100;
+const clientHeight = 100;
 let clientSpeed = 2; // Speed at which clients move horizontally
 
 // Load images
@@ -39,19 +39,35 @@ boatImage.src = 'assets/boat.png';
 const backgroundUnderwaterImage = new Image();
 backgroundUnderwaterImage.src = 'assets/background_underwater.png';
 
-// Load client images
-const goodClientImages = [];
-for (let i = 1; i <= 4; i++) {
-  const img = new Image();
-  img.src = `assets/good_client${i}.png`;
-  goodClientImages.push(img);
+// Load hook image
+const hookImage = new Image();
+hookImage.src = 'assets/hook.png';
+
+// Load client images for different directions
+const goodClientImagesRL = []; // Right to Left
+const goodClientImagesLR = []; // Left to Right
+
+for (let i = 1; i <= 5; i++) {
+  const imgRL = new Image();
+  imgRL.src = `assets/good_client_rl${i}.png`;
+  goodClientImagesRL.push(imgRL);
+
+  const imgLR = new Image();
+  imgLR.src = `assets/good_client_lr${i}.png`;
+  goodClientImagesLR.push(imgLR);
 }
 
-const badClientImages = [];
-for (let i = 1; i <= 4; i++) {
-  const img = new Image();
-  img.src = `assets/bad_client${i}.png`;
-  badClientImages.push(img);
+const badClientImagesRL = [];
+const badClientImagesLR = [];
+
+for (let i = 1; i <= 5; i++) {
+  const imgRL = new Image();
+  imgRL.src = `assets/bad_client_rl${i}.png`;
+  badClientImagesRL.push(imgRL);
+
+  const imgLR = new Image();
+  imgLR.src = `assets/bad_client_lr${i}.png`;
+  badClientImagesLR.push(imgLR);
 }
 
 // Load sounds
@@ -99,18 +115,26 @@ window.addEventListener('resize', resizeCanvas);
 function spawnClients() {
   // Randomly decide to spawn good or bad client
   const isGoodClient = Math.random() < 0.6; // 60% chance to spawn good client
-  const x = Math.random() * (canvas.width - clientWidth);
+  const direction = Math.random() < 0.5 ? -1 : 1; // Random direction
+  const x = direction === 1 ? -clientWidth : canvas.width;
   const minY = boatY + boatHeight + 50; // Start spawning below the boat
   const maxY = canvas.height - clientHeight - 50; // Avoid spawning off-screen
   const y = Math.random() * (maxY - minY) + minY;
 
-  const direction = Math.random() < 0.5 ? -1 : 1; // Random direction
-
+  let image;
   if (isGoodClient) {
-    const image = goodClientImages[Math.floor(Math.random() * goodClientImages.length)];
+    if (direction === -1) {
+      image = goodClientImagesRL[Math.floor(Math.random() * goodClientImagesRL.length)];
+    } else {
+      image = goodClientImagesLR[Math.floor(Math.random() * goodClientImagesLR.length)];
+    }
     goodClients.push({ x, y, image, direction });
   } else {
-    const image = badClientImages[Math.floor(Math.random() * badClientImages.length)];
+    if (direction === -1) {
+      image = badClientImagesRL[Math.floor(Math.random() * badClientImagesRL.length)];
+    } else {
+      image = badClientImagesLR[Math.floor(Math.random() * badClientImagesLR.length)];
+    }
     badClients.push({ x, y, image, direction });
   }
 }
@@ -138,21 +162,31 @@ function update() {
     lineLength -= 10; // Retract the line
   }
 
-  // Move clients
-  goodClients.forEach((client) => {
+  // Move good clients
+  for (let i = goodClients.length - 1; i >= 0; i--) {
+    const client = goodClients[i];
     client.x += client.direction * clientSpeed;
-    // Reverse direction if hitting canvas edges
-    if (client.x <= 0 || client.x >= canvas.width - clientWidth) {
-      client.direction *= -1;
-    }
-  });
 
-  badClients.forEach((client) => {
-    client.x += client.direction * clientSpeed;
-    if (client.x <= 0 || client.x >= canvas.width - clientWidth) {
-      client.direction *= -1;
+    // Remove client if off-screen
+    if (client.direction === -1 && client.x + clientWidth < 0) {
+      goodClients.splice(i, 1);
+    } else if (client.direction === 1 && client.x > canvas.width) {
+      goodClients.splice(i, 1);
     }
-  });
+  }
+
+  // Move bad clients
+  for (let i = badClients.length - 1; i >= 0; i--) {
+    const client = badClients[i];
+    client.x += client.direction * clientSpeed;
+
+    // Remove client if off-screen
+    if (client.direction === -1 && client.x + clientWidth < 0) {
+      badClients.splice(i, 1);
+    } else if (client.direction === 1 && client.x > canvas.width) {
+      badClients.splice(i, 1);
+    }
+  }
 
   // Check for collisions
   checkCollisions();
@@ -190,20 +224,24 @@ function draw() {
     ctx.strokeStyle = '#000000';
     ctx.stroke();
 
-    // Optionally, draw a hook at the end of the line
-    ctx.beginPath();
-    ctx.arc(lineX, lineY + lineLength, 5, 0, Math.PI * 2);
-    ctx.fillStyle = '#FFD700'; // Gold color for the hook
-    ctx.fill();
+    // Draw hook image at the end of the line
+    if (hookImage.complete) {
+      ctx.drawImage(hookImage, lineX - 15, lineY + lineLength - 15, 30, 30);
+    }
   }
 
-  // Draw clients
+  // Draw good clients
   goodClients.forEach((client) => {
-    ctx.drawImage(client.image, client.x, client.y, clientWidth, clientHeight);
+    if (client.image.complete) {
+      ctx.drawImage(client.image, client.x, client.y, clientWidth, clientHeight);
+    }
   });
 
+  // Draw bad clients
   badClients.forEach((client) => {
-    ctx.drawImage(client.image, client.x, client.y, clientWidth, clientHeight);
+    if (client.image.complete) {
+      ctx.drawImage(client.image, client.x, client.y, clientWidth, clientHeight);
+    }
   });
 
   // Draw score and lives
@@ -239,6 +277,7 @@ function checkCollisions() {
         }
         isCasting = false;
         lineLength = 0; // Retract the line
+        break; // Only catch one client at a time
       }
     }
 
@@ -269,6 +308,7 @@ function checkCollisions() {
           }
           gameRunning = false;
         }
+        break; // Only catch one client at a time
       }
     }
   }
