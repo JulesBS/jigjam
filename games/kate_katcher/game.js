@@ -22,7 +22,7 @@ const keys = {};
 const items = [];
 let itemWidth = 40;
 let itemHeight = 40;
-let itemSpeed = 9;
+let itemSpeed = 3; // Set initial speed to 3
 const itemTypes = []; // Array to hold item images
 
 // Load images
@@ -139,7 +139,12 @@ function update() {
   updateItems();
 
   // Increase difficulty over time
-  itemSpeed += 0.1; // Adjust the increment as needed
+  itemSpeed += 0.002; // Smaller increment for gradual acceleration
+
+  // Limit the maximum itemSpeed
+  if (itemSpeed > 10) {
+    itemSpeed = 10; // Cap the speed at 10
+  }
 
   // Spawn new items at intervals
   if (Math.random() < 0.02) {
@@ -206,7 +211,7 @@ function gameLoop() {
         gameRunning = true;
         score = 0;
         lives = 3;
-        itemSpeed = 1;
+        itemSpeed = 3; // Reset to initial speed
         items.length = 0; // Clear items
         // Remove the event listener to prevent multiple triggers
         document.removeEventListener('keydown', restartGame);
