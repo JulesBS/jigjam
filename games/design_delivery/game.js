@@ -8,6 +8,7 @@ canvas.height = window.innerHeight * 0.8;
 
 // Game variables
 let gameRunning = true;
+let gameWon = false;
 let startTime;
 let elapsedTime = 0; // Time in milliseconds
 let highScore = localStorage.getItem('designDeliveryHighScore') || null;
@@ -15,38 +16,37 @@ let highScore = localStorage.getItem('designDeliveryHighScore') || null;
 // Designer properties
 const designerWidth = 50;
 const designerHeight = 50;
-let designerX = canvas.width / 2 - designerWidth / 2;
-let designerY = canvas.height - designerHeight - 10; // Start near the bottom
+let designerX;
+let designerY;
 const designerSpeed = 5;
 
 // Numa properties
-const numaWidth = 50;
-const numaHeight = 50;
+const numaWidth = 100; // Doubled size
+const numaHeight = 100;
 let numaX;
 let numaY;
-let numaSpeed = 2.5;
-let numaDirection = { x: 1, y: 1 };
+const numaSpeed = 3;
 
 // Sam properties
-const samWidth = 50;
-const samHeight = 50;
+const samWidth = 100; // Doubled size
+const samHeight = 100;
 let samX;
 let samY;
-let samSpeed = 2.5;
-let samDirection = { x: -1, y: 1 };
+const samSpeed = 2;
 
 // Design asset properties
-const assetWidth = 30;
-const assetHeight = 30;
+const assetWidth = 60; // Doubled size
+const assetHeight = 60;
 let carryingAsset = false;
 let assetsDelivered = 0;
 const totalAssets = 3;
+const designAssets = []; // Array to hold the assets
 
 // Production server properties
 const serverWidth = 70;
 const serverHeight = 70;
-const serverX = canvas.width / 2 - serverWidth / 2;
-const serverY = 10; // Server is at the top
+let serverX;
+let serverY;
 
 // Obstacles
 const obstacles = [];
@@ -58,6 +58,9 @@ const keys = {};
 // Load images
 const designerImage = new Image();
 designerImage.src = 'assets/designer.png';
+
+const designerCarryingImage = new Image();
+designerCarryingImage.src = 'assets/designer_carrying.png';
 
 const numaImage = new Image();
 numaImage.src = 'assets/numa.png';
@@ -87,7 +90,6 @@ const gameOverSound = new Audio('assets/game_over.mp3');
 document.addEventListener('keydown', function (e) {
   keys[e.code] = true;
 });
-
 document.addEventListener('keyup', function (e) {
   keys[e.code] = false;
 });
@@ -106,26 +108,43 @@ window.addEventListener('resize', resizeCanvas);
 
 // Helper function to reset positions
 function resetPositions() {
-  // Reset Designer position
-  designerX = canvas.width / 2 - designerWidth / 2;
-  designerY = canvas.height - designerHeight - 10;
+  // Reset Designer position (start near assets)
+  designerX = 100; // Start just to the right of the assets
+  designerY = canvas.height / 2 - designerHeight / 2;
 
   // Reset Numa and Sam positions
-  numaX = 10;
+  numaX = canvas.width / 2;
   numaY = 10;
-  numaDirection = { x: 1, y: 1 };
 
-  samX = canvas.width - samWidth - 10;
-  samY = 10;
-  samDirection = { x: -1, y: 1 };
+  samX = canvas.width / 2;
+  samY = canvas.height - samHeight - 10;
+
+  // Set Production server position (right side)
+  serverX = canvas.width - serverWidth - 10;
+  serverY = canvas.height / 2 - serverHeight / 2;
+
+  // Reset assets
+  designAssets.length = 0;
+
+  // Calculate starting y-coordinate to center the assets vertically
+  const totalAssetHeight = totalAssets * assetHeight + (totalAssets - 1) * 20;
+  const startY = canvas.height / 2 - totalAssetHeight / 2;
+
+  for (let i = 0; i < totalAssets; i++) {
+    designAssets.push({
+      x: 30, // Adjust x to position assets near the center-left
+      y: startY + i * (assetHeight + 20),
+      collected: false,
+    });
+  }
 
   // Reset obstacles
   obstacles.length = 0;
   for (let i = 0; i < obstacleCount; i++) {
     const obstacleWidth = 60;
     const obstacleHeight = 60;
-    const obstacleX = Math.random() * (canvas.width - obstacleWidth);
-    const obstacleY = Math.random() * (canvas.height - obstacleHeight - 100) + 100;
+    const obstacleX = Math.random() * (canvas.width - obstacleWidth - 200) + 100;
+    const obstacleY = Math.random() * (canvas.height - obstacleHeight - 100) + 50;
     obstacles.push({ x: obstacleX, y: obstacleY, width: obstacleWidth, height: obstacleHeight });
   }
 }
@@ -136,36 +155,33 @@ function update() {
   elapsedTime = performance.now() - startTime;
 
   // Move Designer
+  let prevDesignerX = designerX;
+  let prevDesignerY = designerY;
+
   if (keys['ArrowLeft'] && designerX > 0) {
     designerX -= designerSpeed;
-    if (checkCollisionWithObstacles(designerX, designerY, designerWidth, designerHeight)) {
-      designerX += designerSpeed;
-    }
   }
   if (keys['ArrowRight'] && designerX < canvas.width - designerWidth) {
     designerX += designerSpeed;
-    if (checkCollisionWithObstacles(designerX, designerY, designerWidth, designerHeight)) {
-      designerX -= designerSpeed;
-    }
   }
   if (keys['ArrowUp'] && designerY > 0) {
     designerY -= designerSpeed;
-    if (checkCollisionWithObstacles(designerX, designerY, designerWidth, designerHeight)) {
-      designerY += designerSpeed;
-    }
   }
   if (keys['ArrowDown'] && designerY < canvas.height - designerHeight) {
     designerY += designerSpeed;
-    if (checkCollisionWithObstacles(designerX, designerY, designerWidth, designerHeight)) {
-      designerY -= designerSpeed;
-    }
   }
 
-  // Move Numa
-  moveEnemy('numa');
+  // Check collision with obstacles for Designer
+  if (checkCollisionWithObstacles(designerX, designerY, designerWidth, designerHeight)) {
+    designerX = prevDesignerX;
+    designerY = prevDesignerY;
+  }
 
-  // Move Sam
-  moveEnemy('sam');
+  // Move Numa towards the player
+  moveEnemyTowardsPlayer('numa');
+
+  // Move Sam towards the player
+  moveEnemyTowardsPlayer('sam');
 
   // Collision detection with Numa
   if (
@@ -199,21 +215,24 @@ function update() {
     gameOver(false);
   }
 
-  // Picking up the design asset
-  if (!carryingAsset && assetsDelivered < totalAssets) {
-    const assetX = canvas.width / 2 - assetWidth / 2;
-    const assetY = canvas.height - assetHeight - 10;
-    if (
-      designerX < assetX + assetWidth &&
-      designerX + designerWidth > assetX &&
-      designerY < assetY + assetHeight &&
-      designerY + designerHeight > assetY
-    ) {
-      carryingAsset = true;
-      try {
-        pickupSound.play();
-      } catch (e) {
-        console.error('Error playing sound:', e);
+  // Picking up design assets
+  if (!carryingAsset) {
+    for (let asset of designAssets) {
+      if (
+        !asset.collected &&
+        designerX < asset.x + assetWidth &&
+        designerX + designerWidth > asset.x &&
+        designerY < asset.y + assetHeight &&
+        designerY + designerHeight > asset.y
+      ) {
+        carryingAsset = true;
+        asset.collected = true;
+        try {
+          pickupSound.play();
+        } catch (e) {
+          console.error('Error playing sound:', e);
+        }
+        break; // Only pick up one asset at a time
       }
     }
   }
@@ -233,7 +252,6 @@ function update() {
       } catch (e) {
         console.error('Error playing sound:', e);
       }
-      resetPositions();
       if (assetsDelivered >= totalAssets) {
         // All assets delivered, game over
         gameOver(true);
@@ -242,9 +260,9 @@ function update() {
   }
 }
 
-// Function to move enemies with obstacle avoidance and random behavior
-function moveEnemy(enemy) {
-  let enemyX, enemyY, enemyWidth, enemyHeight, enemySpeed, enemyDirection;
+// Function to move enemies towards the player (enemies ignore obstacles)
+function moveEnemyTowardsPlayer(enemy) {
+  let enemyX, enemyY, enemyWidth, enemyHeight, enemySpeed;
 
   if (enemy === 'numa') {
     enemyX = numaX;
@@ -252,54 +270,36 @@ function moveEnemy(enemy) {
     enemyWidth = numaWidth;
     enemyHeight = numaHeight;
     enemySpeed = numaSpeed;
-    enemyDirection = numaDirection;
   } else if (enemy === 'sam') {
     enemyX = samX;
     enemyY = samY;
     enemyWidth = samWidth;
     enemyHeight = samHeight;
     enemySpeed = samSpeed;
-    enemyDirection = samDirection;
   }
 
-  // Randomly change direction
-  if (Math.random() < 0.02) {
-    enemyDirection.x = Math.random() < 0.5 ? -1 : 1;
-    enemyDirection.y = Math.random() < 0.5 ? -1 : 1;
+  // Move enemy towards the player
+  if (designerX < enemyX) {
+    enemyX -= enemySpeed;
+  } else if (designerX > enemyX) {
+    enemyX += enemySpeed;
   }
 
-  // Move enemy
-  enemyX += enemyDirection.x * enemySpeed;
-  enemyY += enemyDirection.y * enemySpeed;
-
-  // Check for collisions with obstacles
-  if (checkCollisionWithObstacles(enemyX, enemyY, enemyWidth, enemyHeight)) {
-    // Reverse direction on collision
-    enemyDirection.x *= -1;
-    enemyDirection.y *= -1;
-    enemyX += enemyDirection.x * enemySpeed * 2;
-    enemyY += enemyDirection.y * enemySpeed * 2;
+  if (designerY < enemyY) {
+    enemyY -= enemySpeed;
+  } else if (designerY > enemyY) {
+    enemyY += enemySpeed;
   }
 
-  // Keep enemy within bounds
-  if (enemyX <= 0 || enemyX >= canvas.width - enemyWidth) {
-    enemyDirection.x *= -1;
-    enemyX += enemyDirection.x * enemySpeed * 2;
-  }
-  if (enemyY <= 0 || enemyY >= canvas.height - enemyHeight) {
-    enemyDirection.y *= -1;
-    enemyY += enemyDirection.y * enemySpeed * 2;
-  }
+  // Enemies can now pass through obstacles (removed collision checks)
 
   // Update enemy positions
   if (enemy === 'numa') {
     numaX = enemyX;
     numaY = enemyY;
-    numaDirection = enemyDirection;
   } else if (enemy === 'sam') {
     samX = enemyX;
     samY = enemyY;
-    samDirection = enemyDirection;
   }
 }
 
@@ -320,73 +320,98 @@ function checkCollisionWithObstacles(x, y, width, height) {
 
 // Game draw function
 function draw() {
-  // Draw background
+  // Clear the canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  if (backgroundImage.complete) {
-    ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
-  } else {
-    ctx.fillStyle = '#f0f0f0'; // Light gray placeholder
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
 
-  // Draw obstacles
-  for (let obstacle of obstacles) {
-    if (obstacleImage.complete) {
-      ctx.drawImage(obstacleImage, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+  if (gameRunning) {
+    // Draw background
+    if (backgroundImage.complete) {
+      ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
     } else {
-      ctx.fillStyle = '#8B4513'; // Brown color placeholder
-      ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+      ctx.fillStyle = '#f0f0f0'; // Light gray placeholder
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
-  }
 
-  // Draw production server
-  if (serverImage.complete) {
-    ctx.drawImage(serverImage, serverX, serverY, serverWidth, serverHeight);
-  }
-
-  // Draw design asset (if not picked up and assets remain)
-  if (!carryingAsset && assetsDelivered < totalAssets) {
-    if (assetImage.complete) {
-      ctx.drawImage(
-        assetImage,
-        canvas.width / 2 - assetWidth / 2,
-        canvas.height - assetHeight - 10,
-        assetWidth,
-        assetHeight
-      );
+    // Draw obstacles
+    for (let obstacle of obstacles) {
+      if (obstacleImage.complete) {
+        ctx.drawImage(obstacleImage, obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+      } else {
+        ctx.fillStyle = '#8B4513'; // Brown color placeholder
+        ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+      }
     }
-  }
 
-  // Draw Designer
-  if (designerImage.complete) {
-    ctx.drawImage(designerImage, designerX, designerY, designerWidth, designerHeight);
-  }
+    // Draw production server
+    if (serverImage.complete) {
+      ctx.drawImage(serverImage, serverX, serverY, serverWidth, serverHeight);
+    }
 
-  // Draw Numa
-  if (numaImage.complete) {
-    ctx.drawImage(numaImage, numaX, numaY, numaWidth, numaHeight);
-  }
+    // Draw design assets
+    for (let asset of designAssets) {
+      if (!asset.collected) {
+        if (assetImage.complete) {
+          ctx.drawImage(assetImage, asset.x, asset.y, assetWidth, assetHeight);
+        } else {
+          ctx.fillStyle = '#FFD700'; // Gold color placeholder
+          ctx.fillRect(asset.x, asset.y, assetWidth, assetHeight);
+        }
+      }
+    }
 
-  // Draw Sam
-  if (samImage.complete) {
-    ctx.drawImage(samImage, samX, samY, samWidth, samHeight);
-  }
+    // Draw Designer
+    if (designerImage.complete) {
+      if (carryingAsset) {
+        ctx.drawImage(designerCarryingImage, designerX, designerY, designerWidth, designerHeight);
+      } else {
+        ctx.drawImage(designerImage, designerX, designerY, designerWidth, designerHeight);
+      }
+    }
 
-  // Draw timer
-  ctx.fillStyle = '#000000';
-  ctx.font = '20px Arial';
-  ctx.fillText('Time: ' + (elapsedTime / 1000).toFixed(2) + 's', 10, 30);
-  ctx.fillText('Assets Delivered: ' + assetsDelivered + '/' + totalAssets, 10, 60);
+    // Draw Numa
+    if (numaImage.complete) {
+      ctx.drawImage(numaImage, numaX, numaY, numaWidth, numaHeight);
+    }
 
-  // Draw high score if exists
-  if (highScore !== null) {
-    ctx.fillText('Best Time: ' + (highScore / 1000).toFixed(2) + 's', 10, 90);
+    // Draw Sam
+    if (samImage.complete) {
+      ctx.drawImage(samImage, samX, samY, samWidth, samHeight);
+    }
+
+    // Draw timer and score
+    ctx.fillStyle = '#000000';
+    ctx.font = '20px Arial';
+    ctx.fillText('Time: ' + (elapsedTime / 1000).toFixed(2) + 's', 10, 30);
+    ctx.fillText('Assets Delivered: ' + assetsDelivered + '/' + totalAssets, 10, 60);
+
+    // Draw high score if exists
+    if (highScore !== null) {
+      ctx.fillText('Best Time: ' + (highScore / 1000).toFixed(2) + 's', 10, 90);
+    }
+  } else {
+    // Draw game over screen
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '40px Arial';
+    if (gameWon) {
+      ctx.fillText('You Win!', canvas.width / 2 - 80, canvas.height / 2 - 60);
+      ctx.font = '30px Arial';
+      ctx.fillText('Your Time: ' + (elapsedTime / 1000).toFixed(2) + 's', canvas.width / 2 - 100, canvas.height / 2 - 20);
+      ctx.fillText('Best Time: ' + (highScore / 1000).toFixed(2) + 's', canvas.width / 2 - 100, canvas.height / 2 + 20);
+    } else {
+      ctx.fillText('Game Over!', canvas.width / 2 - 100, canvas.height / 2 - 60);
+      ctx.font = '30px Arial';
+      ctx.fillText('You were caught!', canvas.width / 2 - 90, canvas.height / 2 - 20);
+    }
+    ctx.fillText('Press Enter to Restart', canvas.width / 2 - 130, canvas.height / 2 + 60);
   }
 }
 
 // Game over function
 function gameOver(won) {
   gameRunning = false;
+  gameWon = won;
 
   if (won) {
     // Update high score if it's a new best time
@@ -396,28 +421,19 @@ function gameOver(won) {
     }
   }
 
-  // Display Game Over Screen
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '40px Arial';
-  if (won) {
-    ctx.fillText('You Win!', canvas.width / 2 - 80, canvas.height / 2 - 60);
-    ctx.font = '30px Arial';
-    ctx.fillText('Your Time: ' + (elapsedTime / 1000).toFixed(2) + 's', canvas.width / 2 - 100, canvas.height / 2 - 20);
-    ctx.fillText('Best Time: ' + (highScore / 1000).toFixed(2) + 's', canvas.width / 2 - 100, canvas.height / 2 + 20);
-  } else {
-    ctx.fillText('Game Over!', canvas.width / 2 - 100, canvas.height / 2 - 60);
-    ctx.font = '30px Arial';
-    ctx.fillText('You were caught!', canvas.width / 2 - 90, canvas.height / 2 - 20);
+  // Play game over sound
+  try {
+    gameOverSound.play();
+  } catch (e) {
+    console.error('Error playing sound:', e);
   }
-  ctx.fillText('Press Enter to Restart', canvas.width / 2 - 130, canvas.height / 2 + 60);
 
   // Listen for Enter key to restart
   function restartGame(e) {
     if (e.code === 'Enter') {
       // Reset game variables
       gameRunning = true;
+      gameWon = false;
       elapsedTime = 0;
       carryingAsset = false;
       assetsDelivered = 0;
@@ -425,8 +441,7 @@ function gameOver(won) {
       startTime = performance.now();
       // Remove the event listener to prevent multiple triggers
       document.removeEventListener('keydown', restartGame);
-      // Restart the game loop
-      gameLoop();
+      // Note: gameLoop continues running, so no need to restart it
     }
   }
   document.addEventListener('keydown', restartGame);
@@ -436,9 +451,9 @@ function gameOver(won) {
 function gameLoop() {
   if (gameRunning) {
     update();
-    draw();
-    requestAnimationFrame(gameLoop);
   }
+  draw();
+  requestAnimationFrame(gameLoop);
 }
 
 // Start the game
