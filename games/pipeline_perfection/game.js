@@ -6,16 +6,19 @@ const gameOverScreen = document.getElementById('gameOverScreen');
 const gameOverMessage = document.querySelector('.gameOverContent p');
 const restartBtn = document.getElementById('restartBtn');
 
+// Model Arrival Timer
+let modelArrivalTimer;
+
 // Game Variables
 let successCount = 0;
 let modelIdCounter = 1;
-let modelArrivalTimer; // Declare at the top
 const modelArrivalInterval = 5000; // New model every 5 seconds
 const maxQueuePerStation = 3;
 const stations = ['polygonReduction', 'pivotPoints', 'materialsTextures'];
 
 // Initialize Game
 function initGame() {
+  console.log('Initializing game...');
   successCount = 0;
   modelIdCounter = 1;
 
@@ -46,6 +49,7 @@ function initGame() {
 
 // Generate a New Model
 function generateModel() {
+  console.log('Generating a new model...');
   const model = createModel(modelIdCounter++);
   displayModel(model);
   console.log(`Model ${model.id} Generated`);
@@ -65,6 +69,7 @@ function createModel(id) {
 
 // Display Model in Reception Area
 function displayModel(model) {
+  console.log(`Displaying Model ${model.id} in Incoming Models`);
   const modelDiv = document.createElement('div');
   modelDiv.classList.add('model');
   modelDiv.setAttribute('draggable', true);
@@ -76,6 +81,25 @@ function displayModel(model) {
   timerDiv.classList.add('circularTimer');
   timerDiv.textContent = '60'; // Start at 60 seconds
   modelDiv.appendChild(timerDiv);
+
+  // Create Progress Bars
+  const progressBarContainer = document.createElement('div');
+  progressBarContainer.classList.add('progressBarContainer');
+
+  ['polygonReduction', 'pivotPoints', 'materialsTextures'].forEach(requirement => {
+    const progressBar = document.createElement('div');
+    progressBar.classList.add('progressBar');
+
+    const fill = document.createElement('div');
+    fill.classList.add('fill');
+    fill.style.width = `${model.initialCompletion[requirement]}%`;
+    fill.style.backgroundColor = model.initialCompletion[requirement] >= 100 ? 'green' : '#000';
+
+    progressBar.appendChild(fill);
+    progressBarContainer.appendChild(progressBar);
+  });
+
+  modelDiv.appendChild(progressBarContainer);
 
   // Display Needs as Title Tooltip
   let needsText = 'All Optimization Needs';
@@ -92,10 +116,11 @@ function displayModel(model) {
 
 // Drag Functions
 function dragStart(e) {
-  e.dataTransfer.setData('text/plain', e.target.getAttribute('data-model-id'));
+  const modelId = e.target.getAttribute('data-model-id');
+  console.log(`Dragging Model ${modelId}`);
+  e.dataTransfer.setData('text/plain', modelId);
 
   // Pause the model's timer when being dragged
-  const modelId = e.target.getAttribute('data-model-id');
   const modelDiv = document.querySelector(`.model[data-model-id='${modelId}']`);
   if (modelDiv) {
     pauseModelTimer(modelDiv);
@@ -104,7 +129,12 @@ function dragStart(e) {
 
 // Allow Drop on Stations
 stations.forEach(station => {
-  const queue = document.getElementById(`${station}Queue`);
+  const queue = document.getElementById(`${station}Queue`); // Corrected template string
+
+  if (!queue) {
+    console.error(`Element with ID "${station}Queue" not found.`);
+    return; // Skip if the queue element doesn't exist
+  }
 
   // Prevent default drag over behavior
   queue.addEventListener('dragover', (e) => {
@@ -115,6 +145,7 @@ stations.forEach(station => {
   queue.addEventListener('drop', (e) => {
     e.preventDefault();
     const modelId = e.dataTransfer.getData('text/plain');
+    console.log(`Dropping Model ${modelId} into ${formatStationName(station)}`);
     assignModelToStation(modelId, station);
   });
 });
@@ -128,6 +159,7 @@ function assignModelToStation(modelId, station) {
     // Check if Queue is Full
     if (queue.childNodes.length >= maxQueuePerStation) {
       alert(`Cannot assign Model ${modelId} to ${formatStationName(station)}. Queue is full.`);
+      console.log(`Queue for ${station} is full. Cannot assign Model ${modelId}.`);
       return;
     }
 
@@ -144,19 +176,22 @@ function assignModelToStation(modelId, station) {
     // Start Processing
     startProcessing(modelDiv, station);
     console.log(`Model ${modelId} assigned to ${formatStationName(station)}`);
+  } else {
+    console.log(`Model ${modelId} not found in Incoming Models.`);
   }
 }
 
 // Start Processing a Model in Station
 function startProcessing(modelDiv, station) {
+  const modelId = modelDiv.getAttribute('data-model-id');
   modelDiv.classList.add('processing');
-  console.log(`Model ${modelDiv.getAttribute('data-model-id')} started processing at ${formatStationName(station)}`);
+  console.log(`Model ${modelId} started processing at ${formatStationName(station)}`);
 
   // Simulate Processing Time
   const processingTime = 10000; // 10 seconds in milliseconds
   setTimeout(() => {
     modelDiv.classList.remove('processing');
-    console.log(`Model ${modelDiv.getAttribute('data-model-id')} completed processing at ${formatStationName(station)}`);
+    console.log(`Model ${modelId} completed processing at ${formatStationName(station)}`);
     completeProcessing(modelDiv, station);
   }, processingTime);
 }
@@ -164,8 +199,6 @@ function startProcessing(modelDiv, station) {
 // Complete Processing a Model
 function completeProcessing(modelDiv, station) {
   const modelId = modelDiv.getAttribute('data-model-id');
-
-  // Determine Next Step
   const stationIndex = stations.indexOf(station);
   const isLastStation = stationIndex === stations.length - 1;
 
@@ -176,6 +209,7 @@ function completeProcessing(modelDiv, station) {
 
     if (nextQueue.childNodes.length >= maxQueuePerStation) {
       alert(`Cannot send Model ${modelId} to ${formatStationName(nextStation)}. Queue is full.`);
+      console.log(`Queue for ${nextStation} is full. Cannot move Model ${modelId}.`);
       return;
     }
 
@@ -212,12 +246,15 @@ function startModelTimer(modelDiv) {
   let remainingTime = 60; // 60 seconds
   const timerDiv = modelDiv.querySelector('.circularTimer');
   timerDiv.textContent = remainingTime;
+  console.log(`Starting timer for Model ${modelDiv.getAttribute('data-model-id')} with 60 seconds`);
 
   // Initialize Timer Interval
   const timerInterval = setInterval(() => {
     // If model is being processed, do not decrement
     if (!modelDiv.classList.contains('processing')) {
       remainingTime--;
+      console.log(`Model ${modelDiv.getAttribute('data-model-id')} remaining time: ${remainingTime}`);
+
       if (remainingTime <= 0) {
         clearInterval(timerInterval);
         endGame(`Model ${modelDiv.getAttribute('data-model-id')} has been idle for too long.`);
@@ -226,6 +263,9 @@ function startModelTimer(modelDiv) {
         const percentage = (remainingTime / 60) * 100;
         timerDiv.style.background = `conic-gradient(#ff0000 ${percentage}%, #ccc ${percentage}% 100%)`;
         timerDiv.textContent = remainingTime;
+
+        // Update Progress Bars
+        updateProgressBars(modelDiv, remainingTime);
       }
     }
   }, 1000); // Every second
@@ -234,17 +274,47 @@ function startModelTimer(modelDiv) {
   modelDiv.timerInterval = timerInterval;
 }
 
+// Update Progress Bars Based on Remaining Time
+function updateProgressBars(modelDiv, remainingTime) {
+  const requirements = ['polygonReduction', 'pivotPoints', 'materialsTextures'];
+  const stationIndex = getCurrentStationIndex(modelDiv);
+  if (stationIndex === -1) return; // Model not in any station
+
+  const fillDivs = modelDiv.querySelectorAll('.progressBar .fill');
+  fillDivs.forEach((fillDiv, index) => {
+    if (index === stationIndex) {
+      // Calculate new width based on remaining time
+      const percentage = ((60 - remainingTime) / 60) * 100;
+      fillDiv.style.width = `${percentage}%`;
+      fillDiv.style.backgroundColor = percentage >= 100 ? 'green' : '#000';
+    }
+  });
+}
+
+// Get Current Station Index for a Model
+function getCurrentStationIndex(modelDiv) {
+  for (let i = 0; i < stations.length; i++) {
+    const queue = document.getElementById(`${stations[i]}Queue`);
+    if (queue.contains(modelDiv)) {
+      return i;
+    }
+  }
+  return -1; // Not found in any station
+}
+
 // Pause Model Timer
 function pauseModelTimer(modelDiv) {
   clearInterval(modelDiv.timerInterval);
   const timerDiv = modelDiv.querySelector('.circularTimer');
   timerDiv.classList.add('paused');
+  console.log(`Paused timer for Model ${modelDiv.getAttribute('data-model-id')}`);
 }
 
 // Resume Model Timer
 function resumeModelTimer(modelDiv) {
   const timerDiv = modelDiv.querySelector('.circularTimer');
   timerDiv.classList.remove('paused');
+  console.log(`Resuming timer for Model ${modelDiv.getAttribute('data-model-id')}`);
 
   // Retrieve remaining time
   let remainingTime = parseInt(timerDiv.textContent);
@@ -258,6 +328,8 @@ function resumeModelTimer(modelDiv) {
     // If model is being processed, do not decrement
     if (!modelDiv.classList.contains('processing')) {
       remainingTime--;
+      console.log(`Model ${modelDiv.getAttribute('data-model-id')} remaining time: ${remainingTime}`);
+
       if (remainingTime <= 0) {
         clearInterval(timerInterval);
         endGame(`Model ${modelDiv.getAttribute('data-model-id')} has been idle for too long.`);
@@ -266,6 +338,9 @@ function resumeModelTimer(modelDiv) {
         const percentage = (remainingTime / 60) * 100;
         timerDiv.style.background = `conic-gradient(#ff0000 ${percentage}%, #ccc ${percentage}% 100%)`;
         timerDiv.textContent = remainingTime;
+
+        // Update Progress Bars
+        updateProgressBars(modelDiv, remainingTime);
       }
     }
   }, 1000); // Every second
@@ -280,10 +355,12 @@ function stopModelTimer(modelDiv) {
   const timerDiv = modelDiv.querySelector('.circularTimer');
   timerDiv.style.background = `conic-gradient(#00ff00 100%, #ccc 100% 100%)`; // Green full circle
   timerDiv.textContent = '✓'; // Checkmark to indicate success
+  console.log(`Stopped timer for Model ${modelDiv.getAttribute('data-model-id')}`);
 }
 
 // End Game
 function endGame(message) {
+  console.log('Ending game:', message);
   clearInterval(modelArrivalTimer);
   // Stop all model timers
   document.querySelectorAll('.model').forEach(modelDiv => {
@@ -302,6 +379,20 @@ function getRandomInt(min, max) {
   min = Math.ceil(min);
   max = Math.floor(max);
   return Math.floor(Math.random() * (max - min + 1)) + min; // Inclusive of min and max
+}
+
+// Define formatStationName Function
+function formatStationName(stationId) {
+  switch (stationId) {
+    case 'polygonReduction':
+      return 'Polygon Reduction';
+    case 'pivotPoints':
+      return 'Pivot Points & Parenting';
+    case 'materialsTextures':
+      return 'Materials & Textures';
+    default:
+      return stationId;
+  }
 }
 
 // Start the Game on Page Load

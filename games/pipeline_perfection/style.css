@@ -49,11 +49,11 @@ main {
   position: relative;
   width: 100px;
   height: 100px; /* Maintained 100x100 */
-  background-image: url('assets/model.png'); /* Updated Path */
+  background-image: url('assets/model.png'); /* Ensure this path is correct */
   background-size: cover;
   margin: 10px auto;
   border: 1px solid #ccc;
-  border-radius: 10%; /* Made circular */
+  border-radius: 5%; /* Made circular */
   cursor: grab;
   user-select: none;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -148,10 +148,10 @@ main {
   position: relative;
   width: 100px;
   height: 100px; /* Maintained 100x100 */
-  background-image: url('assets/model.png'); /* Updated Path */
+  background-image: url('assets/model.png'); /* Ensure this path is correct */
   background-size: cover;
   border: 1px solid #ccc;
-  border-radius: 10%; /* Made circular */
+  border-radius: 5%; /* Made circular */
   cursor: grab;
   user-select: none;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -199,11 +199,11 @@ main {
   position: relative;
   width: 100px;
   height: 100px; /* Maintained 100x100 */
-  background-image: url('assets/model.png'); /* Updated Path */
+  background-image: url('assets/model.png'); /* Ensure this path is correct */
   background-size: cover;
   margin: 10px auto;
   border: 1px solid #ccc;
-  border-radius: 50%; /* Made circular */
+  border-radius: 5%; /* Made circular */
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
