@@ -11,7 +11,14 @@ let gameRunning = true;
 let gameWon = false;
 let startTime;
 let elapsedTime = 0; // Time in milliseconds
-let highScore = localStorage.getItem('designDeliveryHighScore') || null;
+
+// Parse highScore from localStorage
+let highScore = localStorage.getItem('designDeliveryHighScore');
+if (highScore !== null) {
+  highScore = parseFloat(highScore);
+} else {
+  highScore = null;
+}
 
 // Designer properties
 const designerWidth = 50;
@@ -25,14 +32,14 @@ const numaWidth = 100; // Doubled size
 const numaHeight = 100;
 let numaX;
 let numaY;
-const numaSpeed = 3;
+const numaSpeed = 3; // Adjusted speed
 
 // Sam properties
 const samWidth = 100; // Doubled size
 const samHeight = 100;
 let samX;
 let samY;
-const samSpeed = 2;
+const samSpeed = 2; // Adjusted speed
 
 // Design asset properties
 const assetWidth = 60; // Doubled size
