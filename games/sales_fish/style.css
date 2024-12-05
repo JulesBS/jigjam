@@ -1,11 +1,16 @@
 body {
-  margin: 0;
-  padding: 0;
+    background-color: #f0f0f0 ;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
   overflow: hidden;
 }
 
 #gameCanvas {
   display: block;
+  border: 2px solid #ecf0f1;
   margin: 0 auto;
-  background: #87CEEB; /* Sky blue color as a placeholder */
+  background: #000; /* Sky blue color as a placeholder */
 }
+

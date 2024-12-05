@@ -245,8 +245,9 @@ function draw() {
   });
 
   // Draw score and lives
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '20px Arial';
+  ctx.fillStyle = '#000000';
+  ctx.font = '24px Comic Sans MS';
+
   ctx.fillText('Score: ' + score, 10, 30);
   ctx.fillText('Lives: ' + lives, 10, 60);
   ctx.fillText('High Score: ' + highScore, 10, 90);
