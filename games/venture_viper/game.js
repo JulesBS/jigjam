@@ -2,6 +2,12 @@
 const headImg = new Image();
 headImg.src = 'assets/head.png'; // Ensure the path is correct
 
+const foodImg = new Image();
+foodImg.src = 'assets/food.png'; // Ensure the path is correct
+
+const tailImg = new Image();
+tailImg.src = 'assets/tail.png'; // Ensure the path is correct
+
 // Variables
 let canvas;
 let ctx;
@@ -134,18 +140,16 @@ function draw() {
       // Draw head image
       ctx.drawImage(headImg, posX, posY, gridSize, gridSize);
     } else {
-      // Draw tail segments as green squares
-      ctx.fillStyle = 'green';
-      ctx.fillRect(posX, posY, gridSize, gridSize);
+      // Draw tail image
+      ctx.drawImage(tailImg, posX, posY, gridSize, gridSize);
     }
   });
 
-  // Draw Food as red square
+  // Draw Food as image
   if (food) {
     const foodPosX = food.x * gridSize;
     const foodPosY = food.y * gridSize;
-    ctx.fillStyle = 'red';
-    ctx.fillRect(foodPosX, foodPosY, gridSize, gridSize);
+    ctx.drawImage(foodImg, foodPosX, foodPosY, gridSize, gridSize);
   }
 
   // Draw Game Over Overlay
@@ -273,19 +277,55 @@ function initializeGame() {
 
   resizeCanvas(); // Initial canvas setup
 
-  // Wait for the head image to load before starting the game
-  headImg.onload = () => {
-    resetGame(); // Start the game after images are loaded
-  };
+  let imagesLoaded = 0;
+  const totalImages = 3; // headImg, foodImg, and tailImg
 
+  headImg.onload = () => {
+    imagesLoaded++;
+    if (imagesLoaded === totalImages) {
+      resetGame(); // Start the game after images are loaded
+    }
+  };
   headImg.onerror = () => {
     console.error('Failed to load head.png');
     alert('Failed to load head.png. Please check the console for more details.');
   };
 
-  // If the image is already loaded (from cache), start the game immediately
+  foodImg.onload = () => {
+    imagesLoaded++;
+    if (imagesLoaded === totalImages) {
+      resetGame(); // Start the game after images are loaded
+    }
+  };
+  foodImg.onerror = () => {
+    console.error('Failed to load food.png');
+    alert('Failed to load food.png. Please check the console for more details.');
+  };
+
+  tailImg.onload = () => {
+    imagesLoaded++;
+    if (imagesLoaded === totalImages) {
+      resetGame(); // Start the game after images are loaded
+    }
+  };
+  tailImg.onerror = () => {
+    console.error('Failed to load tail.png');
+    alert('Failed to load tail.png. Please check the console for more details.');
+  };
+
+  // If images are already loaded (from cache), increment imagesLoaded
   if (headImg.complete) {
-    headImg.onload();
+    imagesLoaded++;
+  }
+  if (foodImg.complete) {
+    imagesLoaded++;
+  }
+  if (tailImg.complete) {
+    imagesLoaded++;
+  }
+  // If all images are already loaded, start the game
+  if (imagesLoaded === totalImages) {
+    resetGame();
   }
 }
 
