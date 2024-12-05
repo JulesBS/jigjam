@@ -1,13 +1,107 @@
+/* General Styles */
 body {
   margin: 0;
   padding: 0;
-  background: #f0f0f0;
+  background-color: #f0f0f0;
+  font-family: Arial, sans-serif;
+}
+
+#game-container {
+  position: relative;
+  width: 800px;
+  height: 600px;
+  margin: 0 auto;
+  background-image: url('assets/background.png');
+  background-size: cover;
   overflow: hidden;
 }
 
-#gameCanvas {
-  display: block;
-  margin: 0 auto;
-  background: #ffffff;
-  border: 1px solid #000000;
+/* Remove the rat-container styles */
+
+/* Pipe Styles */
+.pipe {
+  position: absolute;
+  bottom: 0;
+  width: 100px;
+  height: 200px;
+}
+
+.pipe:nth-child(1) { left: 50px; }
+.pipe:nth-child(2) { left: 250px; }
+.pipe:nth-child(3) { left: 450px; }
+.pipe:nth-child(4) { left: 650px; }
+
+/* Pipe back */
+.pipe-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-image: url('assets/pipe.png');
+  background-size: cover;
+  z-index: 1;
+}
+
+/* Developer Head Styles */
+.dev-head {
+  position: absolute;
+  bottom: 0;
+  width: 100px;
+  height: 100px;
+  background-image: url('assets/dev-head.png');
+  background-size: cover;
+  transition: bottom 0.2s ease;
+  z-index: 2;
+}
+
+.dev-head.hidden {
+  display: none;
+}
+
+.dev-head.pop-up {
+  bottom: 100px;
+}
+
+.dev-head.whacked {
+  background-image: url('assets/dev-head-whacked.png');
+  background-size: cover;
+}
+
+/* Pipe front */
+.pipe-front {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-image: url('assets/pipe-front.png');
+  background-size: cover;
+  z-index: 3;
+}
+
+/* Scoreboard and Timer */
+#scoreboard, #timer {
+  text-align: center;
+  font-size: 24px;
+  margin-top: 10px;
+}
+
+/* Game Over Overlay */
+#game-over-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 800px;
+  height: 600px;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#game-over-overlay.hidden {
+  display: none;
+}
+
+#game-over-content {
+  color: #fff;
+  text-align: center;
+  font-size: 32px;
 }
