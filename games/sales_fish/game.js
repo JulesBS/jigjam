@@ -115,37 +115,43 @@ window.addEventListener('resize', resizeCanvas);
 function spawnClients() {
   // Randomly decide to spawn good or bad client
   const isGoodClient = Math.random() < 0.6; // 60% chance to spawn good client
-  const direction = Math.random() < 0.5 ? -1 : 1; // Random direction
+  
+  // Randomly decide direction: Right to Left (RL) or Left to Right (LR)
+  const isRL = Math.random() < 0.5;
+  const direction = isRL ? -1 : 1;
+  
   const x = direction === 1 ? -clientWidth : canvas.width;
   const minY = boatY + boatHeight + 50; // Start spawning below the boat
   const maxY = canvas.height - clientHeight - 50; // Avoid spawning off-screen
   const y = Math.random() * (maxY - minY) + minY;
-
+  
+  const speed = Math.random() * 2 + 1; // Random speed between 1 and 3
+  
   let image;
   if (isGoodClient) {
-    if (direction === -1) {
+    if (isRL) {
       image = goodClientImagesRL[Math.floor(Math.random() * goodClientImagesRL.length)];
     } else {
       image = goodClientImagesLR[Math.floor(Math.random() * goodClientImagesLR.length)];
     }
-    goodClients.push({ x, y, image, direction });
+    goodClients.push({ x, y, image, direction, speed });
   } else {
-    if (direction === -1) {
+    if (isRL) {
       image = badClientImagesRL[Math.floor(Math.random() * badClientImagesRL.length)];
     } else {
       image = badClientImagesLR[Math.floor(Math.random() * badClientImagesLR.length)];
     }
-    badClients.push({ x, y, image, direction });
+    badClients.push({ x, y, image, direction, speed });
   }
 }
 
 function update() {
   // Move boat left and right
   if (keys['ArrowLeft'] && boatX > 0) {
-    boatX -= 5;
+    boatX -= 2; // Increased speed from 5 to 10
   }
   if (keys['ArrowRight'] && boatX < canvas.width - boatWidth) {
-    boatX += 5;
+    boatX += 2; // Increased speed from 5 to 10
   }
 
   // Update lineX and lineY based on boat's position
@@ -165,7 +171,7 @@ function update() {
   // Move good clients
   for (let i = goodClients.length - 1; i >= 0; i--) {
     const client = goodClients[i];
-    client.x += client.direction * clientSpeed;
+    client.x += client.direction * client.speed; // Use individual speed
 
     // Remove client if off-screen
     if (client.direction === -1 && client.x + clientWidth < 0) {
@@ -178,7 +184,7 @@ function update() {
   // Move bad clients
   for (let i = badClients.length - 1; i >= 0; i--) {
     const client = badClients[i];
-    client.x += client.direction * clientSpeed;
+    client.x += client.direction * client.speed; // Use individual speed
 
     // Remove client if off-screen
     if (client.direction === -1 && client.x + clientWidth < 0) {
