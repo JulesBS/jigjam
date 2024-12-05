@@ -8,13 +8,21 @@ foodImg.src = 'assets/food.png'; // Ensure the path is correct
 const tailImg = new Image();
 tailImg.src = 'assets/tail.png'; // Ensure the path is correct
 
+const backgroundImg = new Image();
+backgroundImg.src = 'assets/background.png'; // Ensure the path is correct
+
+// Sound Variables
+const startSound = new Audio('assets/start.mp3'); // Ensure the path is correct
+const eatSound = new Audio('assets/eat.mp3');     // Ensure the path is correct
+const gameOverSound = new Audio('assets/gameover.mp3'); // Ensure the path is correct
+
 // Variables
 let canvas;
 let ctx;
 
 // Grid Configuration
-const gridX = 30; // Number of cells horizontally
-const gridY = 20; // Number of cells vertically
+const gridX = 21; // Number of cells horizontally
+const gridY = 14; // Number of cells vertically
 
 // Game Variables
 let gridSize; // Will be calculated based on canvas dimensions
@@ -58,7 +66,10 @@ function resizeCanvas() {
  */
 function startGame() {
   gameOver = false;
-  gameInterval = setInterval(gameLoop, 200); // Game updates every 200ms
+  gameInterval = setInterval(gameLoop, 120); // Game updates every 200ms
+
+  // Play start sound
+  startSound.play();
 }
 
 /**
@@ -117,6 +128,9 @@ function update() {
     score += 1;
     updateScoreDisplay();
     food = generateFood();
+
+    // Play eat sound
+    eatSound.play();
   } else {
     // Remove the tail segment if no food is eaten
     snake.pop();
@@ -127,9 +141,8 @@ function update() {
  * Draws the game elements on the canvas.
  */
 function draw() {
-  // Clear Canvas
-  ctx.fillStyle = '#34495e'; // Background color
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // Draw Background Image
+  ctx.drawImage(backgroundImg, 0, 0, canvas.width, canvas.height);
 
   // Draw Snake
   snake.forEach((segment, index) => {
@@ -247,6 +260,9 @@ function endGame() {
     localStorage.setItem('ventureViperHighScore', highScore);
   }
 
+  // Play game over sound
+  gameOverSound.play();
+
   draw(); // Draw the game over overlay
 }
 
@@ -269,7 +285,7 @@ function resetGame() {
 }
 
 /**
- * Initializes the game by setting up the canvas.
+ * Initializes the game by setting up the canvas and loading assets.
  */
 function initializeGame() {
   canvas = document.getElementById('gameCanvas');
@@ -277,54 +293,49 @@ function initializeGame() {
 
   resizeCanvas(); // Initial canvas setup
 
-  let imagesLoaded = 0;
-  const totalImages = 3; // headImg, foodImg, and tailImg
+  let assetsLoaded = 0;
+  const totalAssets = 4; // headImg, foodImg, tailImg, backgroundImg
 
-  headImg.onload = () => {
-    imagesLoaded++;
-    if (imagesLoaded === totalImages) {
-      resetGame(); // Start the game after images are loaded
-    }
-  };
+  // Image loading callbacks
+  headImg.onload = checkAllAssetsLoaded;
   headImg.onerror = () => {
     console.error('Failed to load head.png');
     alert('Failed to load head.png. Please check the console for more details.');
   };
 
-  foodImg.onload = () => {
-    imagesLoaded++;
-    if (imagesLoaded === totalImages) {
-      resetGame(); // Start the game after images are loaded
-    }
-  };
+  foodImg.onload = checkAllAssetsLoaded;
   foodImg.onerror = () => {
     console.error('Failed to load food.png');
     alert('Failed to load food.png. Please check the console for more details.');
   };
 
-  tailImg.onload = () => {
-    imagesLoaded++;
-    if (imagesLoaded === totalImages) {
-      resetGame(); // Start the game after images are loaded
-    }
-  };
+  tailImg.onload = checkAllAssetsLoaded;
   tailImg.onerror = () => {
     console.error('Failed to load tail.png');
     alert('Failed to load tail.png. Please check the console for more details.');
   };
 
-  // If images are already loaded (from cache), increment imagesLoaded
-  if (headImg.complete) {
-    imagesLoaded++;
+  backgroundImg.onload = checkAllAssetsLoaded;
+  backgroundImg.onerror = () => {
+    console.error('Failed to load background.png');
+    alert('Failed to load background.png. Please check the console for more details.');
+  };
+
+  // Check if images are already loaded (from cache)
+  if (headImg.complete) assetsLoaded++;
+  if (foodImg.complete) assetsLoaded++;
+  if (tailImg.complete) assetsLoaded++;
+  if (backgroundImg.complete) assetsLoaded++;
+
+  function checkAllAssetsLoaded() {
+    assetsLoaded++;
+    if (assetsLoaded === totalAssets) {
+      resetGame(); // Start the game after images are loaded
+    }
   }
-  if (foodImg.complete) {
-    imagesLoaded++;
-  }
-  if (tailImg.complete) {
-    imagesLoaded++;
-  }
+
   // If all images are already loaded, start the game
-  if (imagesLoaded === totalImages) {
+  if (assetsLoaded === totalAssets) {
     resetGame();
   }
 }
