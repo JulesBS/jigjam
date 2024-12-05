@@ -108,22 +108,26 @@ body {
 
 #modal-content {
   position: relative;
-  background-color: #fff;
-  padding: 20px;
-  text-align: center;
-  max-width: 90%;
-  max-height: 90%;
-  overflow: auto;
+  width: 750px;            /* Set modal width to match your PNG */
+  height: 540px;           /* Set modal height to match your PNG */
+  background-color: transparent; /* Make modal background transparent */
 }
 
 #modal-image {
-  max-width: 100%;
-  height: auto;
+  width: 100%;
+  height: 100%;
 }
 
 #play-button {
-  margin-top: 20px;
-  padding: 10px 20px;
-  font-size: 18px;
+  position: absolute;
+  bottom: 40px;               /* 40px above the bottom of the image */
+  left: 50%;
+  transform: translateX(-50%);
+  border-color: #000;
+  border-width: 8px;
+  border-radius: 8px;
+  padding: 8px 24px;
+  font-size: 24px;
+  font-family: Comic Sans MS;
   cursor: pointer;
 }
