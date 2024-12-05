@@ -31,18 +31,26 @@ let direction;
 let nextDirection;
 let food = null; // Will be set after images are loaded
 let score;
-let gameInterval;
 let gameOver = false; // Variable to track game over state
 
 // High Score Initialization
 let highScore = localStorage.getItem('ventureViperHighScore') || 0;
+
+// Speed Variables
+let snakeSpeed = 200; // Initial snake speed in ms
+let foodSpeedFactor = 0.3; // Food moves at 30% of snake speed
+let foodSpeed; // Will be calculated based on snakeSpeed and foodSpeedFactor
+const speedIncreaseInterval = 10000; // Increase speed every 10 seconds
+let lastSpeedIncreaseTime = 0;
+
+let lastSnakeUpdateTime = 0;
+let lastFoodUpdateTime = 0;
 
 // Key Press Listener
 document.addEventListener('keydown', changeDirection);
 
 /**
  * Resizes the canvas and recalculates grid size.
- * Should be called before the game starts and optionally on window resize.
  */
 function resizeCanvas() {
   // Set canvas width to 80% of viewport width
@@ -62,30 +70,63 @@ function resizeCanvas() {
 }
 
 /**
- * Starts the game loop.
+ * Starts the game.
  */
 function startGame() {
   gameOver = false;
-  gameInterval = setInterval(gameLoop, 120); // Game updates every 200ms
+  snakeSpeed = 200; // Reset snake speed
+  foodSpeedFactor = 0.3; // Food moves at 30% of snake speed
+  foodSpeed = snakeSpeed / foodSpeedFactor; // Food speed is slower than snake
+  lastSpeedIncreaseTime = performance.now();
+  lastSnakeUpdateTime = 0;
+  lastFoodUpdateTime = 0;
 
   // Play start sound
   startSound.play();
+
+  // Start the game loop
+  requestAnimationFrame(gameLoop);
 }
 
 /**
  * The main game loop.
  */
-function gameLoop() {
+function gameLoop(currentTime) {
   if (!gameOver) {
-    update();
+    if (!lastSnakeUpdateTime) lastSnakeUpdateTime = currentTime;
+    if (!lastFoodUpdateTime) lastFoodUpdateTime = currentTime;
+
+    const snakeDelta = currentTime - lastSnakeUpdateTime;
+    const foodDelta = currentTime - lastFoodUpdateTime;
+    const speedDelta = currentTime - lastSpeedIncreaseTime;
+
+    // Update snake position based on snakeSpeed
+    if (snakeDelta >= snakeSpeed) {
+      updateSnake();
+      lastSnakeUpdateTime = currentTime;
+    }
+
+    // Update food position based on foodSpeed
+    if (foodDelta >= foodSpeed) {
+      updateFood();
+      lastFoodUpdateTime = currentTime;
+    }
+
+    // Increase speed over time
+    if (speedDelta >= speedIncreaseInterval) {
+      increaseSpeed();
+      lastSpeedIncreaseTime = currentTime;
+    }
   }
+
   draw();
+  requestAnimationFrame(gameLoop);
 }
 
 /**
- * Updates the game state.
+ * Updates the snake's position.
  */
-function update() {
+function updateSnake() {
   // Update direction
   direction = nextDirection;
 
@@ -135,6 +176,86 @@ function update() {
     // Remove the tail segment if no food is eaten
     snake.pop();
   }
+}
+
+/**
+ * Updates the food's position to move away from the snake.
+ */
+function updateFood() {
+  const head = snake[0];
+  let dx = food.x - head.x;
+  let dy = food.y - head.y;
+
+  // Determine the direction away from the snake's head
+  let moveX = 0;
+  let moveY = 0;
+
+  if (dx < 0) {
+    moveX = -1; // Move further left to move away from the snake
+  } else if (dx > 0) {
+    moveX = 1;  // Move further right to move away from the snake
+  } else {
+    moveX = Math.random() < 0.5 ? -1 : 1; // Random direction if aligned
+  }
+
+  if (dy < 0) {
+    moveY = -1; // Move further up to move away from the snake
+  } else if (dy > 0) {
+    moveY = 1;  // Move further down to move away from the snake
+  } else {
+    moveY = Math.random() < 0.5 ? -1 : 1; // Random direction if aligned
+  }
+
+  // Randomly choose to move in x or y direction
+  if (Math.abs(dx) > Math.abs(dy)) {
+    food.x += moveX;
+  } else if (Math.abs(dx) < Math.abs(dy)) {
+    food.y += moveY;
+  } else {
+    // If distances are equal, randomly choose
+    if (Math.random() < 0.5) {
+      food.x += moveX;
+    } else {
+      food.y += moveY;
+    }
+  }
+
+  // Ensure food stays within bounds
+  if (food.x < 0) food.x = 0;
+  if (food.x >= gridX) food.x = gridX - 1;
+  if (food.y < 0) food.y = 0;
+  if (food.y >= gridY) food.y = gridY - 1;
+
+  // Avoid moving onto the snake's position
+  if (snake.some(segment => segment.x === food.x && segment.y === food.y)) {
+    // If collision with snake, try moving in the other direction
+    if (Math.abs(dx) > Math.abs(dy)) {
+      food.x -= moveX;
+    } else if (Math.abs(dx) < Math.abs(dy)) {
+      food.y -= moveY;
+    } else {
+      if (Math.random() < 0.5) {
+        food.x -= moveX;
+      } else {
+        food.y -= moveY;
+      }
+    }
+
+    // Check bounds again
+    if (food.x < 0) food.x = 0;
+    if (food.x >= gridX) food.x = gridX - 1;
+    if (food.y < 0) food.y = 0;
+    if (food.y >= gridY) food.y = gridY - 1;
+  }
+}
+
+/**
+ * Increases the speed of the snake and the food.
+ */
+function increaseSpeed() {
+  // Decrease the interval to increase speed
+  snakeSpeed = Math.max(snakeSpeed - 10, 50); // Minimum speed interval of 50ms
+  foodSpeed = snakeSpeed / foodSpeedFactor; // Recalculate food speed
 }
 
 /**
@@ -251,7 +372,6 @@ function updateScoreDisplay() {
  * Ends the game and handles game over logic.
  */
 function endGame() {
-  clearInterval(gameInterval);
   gameOver = true;
 
   // Update high score if necessary
@@ -270,7 +390,6 @@ function endGame() {
  * Resets the game state to initial values.
  */
 function resetGame() {
-  clearInterval(gameInterval); // Clear any existing game intervals
   gameOver = false;
   snake = [
     { x: Math.floor(gridX / 2), y: Math.floor(gridY / 2) },
