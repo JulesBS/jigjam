@@ -7,6 +7,13 @@ const finalScoreDisplay = document.getElementById('finalScore');
 const highScoreDisplay = document.getElementById('highScore');
 const restartBtn = document.getElementById('restartBtn');
 
+// Sound Variables
+const startSound = new Audio('assets/start.mp3');     // Plays when the game starts/restarts
+const endSound = new Audio('assets/end.mp3');         // Plays when the game ends
+const mmhSound = new Audio('assets/mmh.mp3');         // Plays every 20 seconds during the game
+
+let mmhInterval; // Interval ID for the mmh sound
+
 // Game variables
 let cardArray = [];
 let firstCard, secondCard;
@@ -43,6 +50,14 @@ function initGame() {
   resetBoard();
   createCards();
   startTimer();
+
+  // Play start sound
+  startSound.play();
+
+  // Start mmh sound interval
+  mmhInterval = setInterval(() => {
+    mmhSound.play();
+  }, 20000); // Play every 20 seconds
 }
 
 // Create card elements
@@ -116,10 +131,20 @@ function checkForMatch() {
 
 // Disable cards on match
 function disableCards() {
+  // Remove event listeners to make them non-clickable
   firstCard.removeEventListener('click', flipCard);
   secondCard.removeEventListener('click', flipCard);
+
+  // Change images to approved.png
+  const firstBackImg = firstCard.querySelector('.back img');
+  const secondBackImg = secondCard.querySelector('.back img');
+  firstBackImg.src = 'assets/approved.png';
+  secondBackImg.src = 'assets/approved.png';
+
+  // Add matched class to prevent pointer events
   firstCard.classList.add('matched');
   secondCard.classList.add('matched');
+
   resetBoard();
 }
 
@@ -151,6 +176,11 @@ function startTimer() {
 // End game
 function endGame() {
   clearInterval(timer);
+  clearInterval(mmhInterval); // Stop the mmh sound interval
+
+  // Play end sound
+  endSound.play();
+
   let finalScore = Math.max(1000 - moves * 10 - timeElapsed * 2, 0);
   finalScoreDisplay.textContent = finalScore;
   highScoreDisplay.textContent = highScore;
@@ -166,7 +196,9 @@ function endGame() {
 }
 
 // Event listener for restart button
-restartBtn.addEventListener('click', initGame);
+restartBtn.addEventListener('click', () => {
+  initGame();
+});
 
 // Start the game
 initGame();
