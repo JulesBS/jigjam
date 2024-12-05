@@ -24,6 +24,10 @@ let highScore = parseInt(localStorage.getItem('syntaxSprintHighScore')) || 0;
 
 let effects = []; // Array to hold visual effects
 
+// Sound arrays
+const successSounds = ['assets/success1.mp3', 'assets/success2.mp3'];
+const endSounds = ['assets/end1.mp3', 'assets/end2.mp3'];
+
 // Resize canvas to fit 80% of window width
 function resizeCanvas() {
   gameCanvas.width = window.innerWidth * 0.8;
@@ -180,6 +184,11 @@ function update() {
       // Create particle effect
       createParticleEffect(word);
 
+      // Play a random success sound
+      const successSoundSrc = successSounds[Math.floor(Math.random() * successSounds.length)];
+      const successAudio = new Audio(successSoundSrc);
+      successAudio.play();
+
       return false; // Remove word from array
     }
     return true;
@@ -253,7 +262,7 @@ class Particle {
     this.x = x;
     this.y = y;
     this.radius = Math.random() * 5 + 2;
-    this.color = 'rgba(255, 255, 255, 1)'; // Orange color
+    this.color = 'rgba(255, 255, 255, 1)';
     this.speedX = Math.random() * 4 - 2;
     this.speedY = Math.random() * -4 - 1;
     this.gravity = 0.1;
@@ -306,6 +315,11 @@ function gameOver() {
     localStorage.setItem('syntaxSprintHighScore', highScore);
     gameOverMessage.textContent += ' New High Score!';
   }
+
+  // Play a random end sound
+  const endSoundSrc = endSounds[Math.floor(Math.random() * endSounds.length)];
+  const endAudio = new Audio(endSoundSrc);
+  endAudio.play();
 }
 
 // Handle key presses
