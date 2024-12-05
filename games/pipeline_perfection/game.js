@@ -121,15 +121,16 @@ function dragStart(e) {
   e.dataTransfer.setData('text/plain', modelId);
 
   // Pause the model's timer when being dragged
-  const modelDiv = document.querySelector(`.model[data-model-id='${modelId}']`);
+  const modelDiv = getModelById(modelId);
   if (modelDiv) {
     pauseModelTimer(modelDiv);
   }
 }
 
-// Allow Drop on Stations
+// Allow Drop on Stations (Including all three)
 stations.forEach(station => {
-  const queue = document.getElementById(`${station}Queue`); // Corrected template string
+  const queue = document.getElementById(`${station}Queue`);
+  const stationDiv = document.getElementById(station);
 
   if (!queue) {
     console.error(`Element with ID "${station}Queue" not found.`);
@@ -141,9 +142,19 @@ stations.forEach(station => {
     e.preventDefault();
   });
 
+  // Handle Drag Enter and Leave for visual feedback
+  queue.addEventListener('dragenter', () => {
+    stationDiv.classList.add('dragover');
+  });
+
+  queue.addEventListener('dragleave', () => {
+    stationDiv.classList.remove('dragover');
+  });
+
   // Handle Drop
   queue.addEventListener('drop', (e) => {
     e.preventDefault();
+    stationDiv.classList.remove('dragover');
     const modelId = e.dataTransfer.getData('text/plain');
     console.log(`Dropping Model ${modelId} into ${formatStationName(station)}`);
     assignModelToStation(modelId, station);
@@ -152,32 +163,39 @@ stations.forEach(station => {
 
 // Assign Model to Station
 function assignModelToStation(modelId, station) {
-  const modelDiv = modelsContainer.querySelector(`.model[data-model-id='${modelId}']`);
+  const modelDiv = getModelById(modelId);
   if (modelDiv) {
     const queue = document.getElementById(`${station}Queue`);
 
-    // Check if Queue is Full
-    if (queue.childNodes.length >= maxQueuePerStation) {
-      alert(`Cannot assign Model ${modelId} to ${formatStationName(station)}. Queue is full.`);
-      console.log(`Queue for ${station} is full. Cannot assign Model ${modelId}.`);
-      return;
+    // Check if the station has an Active model
+    const activeModel = queue.querySelector('.model.processing');
+    
+    if (activeModel) {
+      // Station already has an Active model, add to queue
+      const currentQueue = queue.querySelectorAll('.model:not(.processing)');
+      if (currentQueue.length >= maxQueuePerStation) {
+        alert(`Cannot assign Model ${modelId} to ${formatStationName(station)}. Queue is full.`);
+        console.log(`Queue for ${station} is full. Cannot assign Model ${modelId}.`);
+        return;
+      }
+      queue.appendChild(modelDiv);
+      console.log(`Model ${modelId} added to queue of ${formatStationName(station)}`);
+    } else {
+      // No Active model, set this model as Active
+      if (queue.childNodes.length >= maxQueuePerStation + 1) { // +1 for Active model
+        alert(`Cannot assign Model ${modelId} to ${formatStationName(station)}. Queue is full.`);
+        console.log(`Queue for ${station} is full. Cannot assign Model ${modelId}.`);
+        return;
+      }
+      queue.appendChild(modelDiv);
+      modelsContainer.removeChild(modelDiv);
+      modelDiv.setAttribute('data-idle-time', '0');
+      // Set as Active
+      startProcessing(modelDiv, station);
+      console.log(`Model ${modelId} assigned as Active to ${formatStationName(station)}`);
     }
-
-    // Move Model to Station Queue
-    queue.appendChild(modelDiv);
-    modelsContainer.removeChild(modelDiv);
-
-    // Reset Idle Time
-    modelDiv.setAttribute('data-idle-time', '0');
-
-    // Resume Model Timer
-    resumeModelTimer(modelDiv);
-
-    // Start Processing
-    startProcessing(modelDiv, station);
-    console.log(`Model ${modelId} assigned to ${formatStationName(station)}`);
   } else {
-    console.log(`Model ${modelId} not found in Incoming Models.`);
+    console.log(`Model ${modelId} not found.`);
   }
 }
 
@@ -187,10 +205,41 @@ function startProcessing(modelDiv, station) {
   modelDiv.classList.add('processing');
   console.log(`Model ${modelId} started processing at ${formatStationName(station)}`);
 
+  // Identify which progress bar to update based on station
+  const stationIndex = stations.indexOf(station); // 0: polygonReduction, 1: pivotPoints, 2: materialsTextures
+  if (stationIndex === -1) {
+    console.error(`Invalid station: ${station}`);
+    return;
+  }
+
+  const fillDiv = modelDiv.querySelectorAll('.progressBar .fill')[stationIndex];
+  if (!fillDiv) {
+    console.error(`Progress bar not found for station: ${station}`);
+    return;
+  }
+
+  // Initialize progress
+  let progress = parseInt(fillDiv.style.width) || 0;
+
+  // Start progress bar increment
+  const progressInterval = setInterval(() => {
+    if (progress < 100) {
+      progress += 10; // 10% per second
+      fillDiv.style.width = `${progress}%`;
+      fillDiv.style.backgroundColor = progress >= 100 ? 'green' : '#000';
+    } else {
+      clearInterval(progressInterval);
+    }
+  }, 1000); // Every second
+
+  // Store Interval ID on the modelDiv for future reference
+  modelDiv.progressInterval = progressInterval;
+
   // Simulate Processing Time
-  const processingTime = 10000; // 10 seconds in milliseconds
+  const processingTime = 10000; // 10 seconds
   setTimeout(() => {
     modelDiv.classList.remove('processing');
+    clearInterval(progressInterval);
     console.log(`Model ${modelId} completed processing at ${formatStationName(station)}`);
     completeProcessing(modelDiv, station);
   }, processingTime);
@@ -207,7 +256,7 @@ function completeProcessing(modelDiv, station) {
     const nextStation = stations[stationIndex + 1];
     const nextQueue = document.getElementById(`${nextStation}Queue`);
 
-    if (nextQueue.childNodes.length >= maxQueuePerStation) {
+    if (nextQueue.childNodes.length >= maxQueuePerStation + 1) { // +1 for Active
       alert(`Cannot send Model ${modelId} to ${formatStationName(nextStation)}. Queue is full.`);
       console.log(`Queue for ${nextStation} is full. Cannot move Model ${modelId}.`);
       return;
@@ -238,6 +287,19 @@ function completeProcessing(modelDiv, station) {
     // Remove Model from Station Queue
     const queue = document.getElementById(`${station}Queue`);
     queue.removeChild(modelDiv);
+
+    // Promote Next Model in Station
+    promoteNextModelInStation(station);
+  }
+}
+
+// Promote Next Model in Station
+function promoteNextModelInStation(station) {
+  const queue = document.getElementById(`${station}Queue`);
+  const nextModel = queue.querySelector('.model:not(.processing)');
+  if (nextModel) {
+    startProcessing(nextModel, station);
+    console.log(`Model ${nextModel.getAttribute('data-model-id')} is now Active at ${formatStationName(station)}`);
   }
 }
 
@@ -396,5 +458,47 @@ function formatStationName(stationId) {
   }
 }
 
-// Start the Game on Page Load
-window.onload = initGame;
+// Helper Function to Get Model by ID
+function getModelById(modelId) {
+  return document.querySelector(`.model[data-model-id='${modelId}']`);
+}
+
+// Allow Drop on Client Review
+const clientReview = document.getElementById('clientReview');
+
+clientReview.addEventListener('dragover', (e) => {
+  e.preventDefault();
+});
+
+clientReview.addEventListener('drop', (e) => {
+  e.preventDefault();
+  const modelId = e.dataTransfer.getData('text/plain');
+  const modelDiv = getModelById(modelId);
+
+  if (modelDiv) {
+    // Check if all progress bars are at 100%
+    const fillDivs = modelDiv.querySelectorAll('.progressBar .fill');
+    const allComplete = Array.from(fillDivs).every(fill => parseInt(fill.style.width) >= 100);
+
+    if (allComplete) {
+      // Move to Client Review
+      reviewContainer.appendChild(modelDiv);
+      // Stop timer
+      stopModelTimer(modelDiv);
+      // Increment Success Count
+      successCount++;
+      successCountDisplay.textContent = successCount;
+      console.log(`Model ${modelId} sent to Client Review. Success Count: ${successCount}`);
+      // Remove from station's queue
+      const station = getCurrentStation(modelDiv);
+      if (station) {
+        removeModelFromStation(modelDiv, station);
+      }
+    } else {
+      alert(`Cannot send Model ${modelId} to Client Review. All progress bars must be at 100%.`);
+      console.log(`Model ${modelId} cannot be sent to Client Review. Progress bars incomplete.`);
+    }
+  } else {
+    console.log(`Model ${modelId} not found for Client Review.`);
+  }
+});

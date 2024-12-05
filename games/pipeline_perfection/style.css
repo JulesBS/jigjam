@@ -53,10 +53,16 @@ main {
   background-size: cover;
   margin: 10px auto;
   border: 1px solid #ccc;
-  border-radius: 5%; /* Made circular */
+  border-radius: 5%; /* Changed from 50% to 5% */
   cursor: grab;
   user-select: none;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: transform 0.3s; /* Added for hover effect */
+}
+
+/* Hover Effect for Models */
+.model:hover {
+  transform: scale(1.05);
 }
 
 /* Circular Timer */
@@ -89,7 +95,7 @@ main {
 /* Progress Bars */
 .progressBarContainer {
   position: absolute;
-  bottom: 5px;
+  bottom: 10px; /* Adjusted for better spacing */
   left: 50%;
   transform: translateX(-50%);
   width: 90%;
@@ -128,6 +134,11 @@ main {
   height: 150px; /* Increased height to accommodate progress bars */
   position: relative;
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  transition: background-color 0.3s; /* For dragover effect */
+}
+
+.station.dragover {
+  background-color: #e0e0e0; /* Highlight on dragover */
 }
 
 .station h3 {
@@ -151,10 +162,16 @@ main {
   background-image: url('assets/model.png'); /* Ensure this path is correct */
   background-size: cover;
   border: 1px solid #ccc;
-  border-radius: 5%; /* Made circular */
+  border-radius: 5%; /* Changed from 50% to 5% */
   cursor: grab;
   user-select: none;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  transition: transform 0.3s; /* Added for hover effect */
+}
+
+/* Hover Effect for Queued Models */
+.queue .model:hover {
+  transform: scale(1.05);
 }
 
 /* Circular Timer in Stations */
@@ -203,7 +220,7 @@ main {
   background-size: cover;
   margin: 10px auto;
   border: 1px solid #ccc;
-  border-radius: 5%; /* Made circular */
+  border-radius: 5%; /* Changed from 50% to 5% */
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
@@ -215,6 +232,7 @@ main {
   width: 100%;
   height: 100%;
   background-color: rgba(0,0,0,0.7);
+  display: flex;
   justify-content: center;
   align-items: center;
 }
