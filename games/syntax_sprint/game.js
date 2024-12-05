@@ -246,7 +246,7 @@ class Particle {
     this.x = x;
     this.y = y;
     this.radius = Math.random() * 5 + 2;
-    this.color = 'rgba(255, 165, 0, 1)'; // Orange color
+    this.color = 'rgba(255, 255, 255, 1)'; // Orange color
     this.speedX = Math.random() * 4 - 2;
     this.speedY = Math.random() * -4 - 1;
     this.gravity = 0.1;

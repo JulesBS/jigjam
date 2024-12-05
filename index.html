@@ -14,52 +14,60 @@
 
     <!-- Circle Container -->
     <div id="circle-container">
-      <!-- New Inner Container -->
+      <!-- Circle Content -->
       <div id="circle-content">
         <!-- Game Items -->
         <!-- Game 1 -->
         <div class="game-item" style="--index:0;">
-          <a href="games/sales_fish/index.html">
+          <button class="game-button" data-game="1">
             <img src="games/sales_fish/assets/thumbnail.png" alt="Prospection Pond Thumbnail">
-          </a>
+          </button>
         </div>
         <!-- Game 2 -->
         <div class="game-item" style="--index:1;">
-          <a href="games/kate_katcher/index.html">
+          <button class="game-button" data-game="2">
             <img src="games/kate_katcher/assets/thumbnail_kate.png" alt="Frantic Frontend Thumbnail">
-          </a>
+          </button>
         </div>
         <!-- Game 3 -->
         <div class="game-item" style="--index:2;">
-          <a href="games/design_delivery/index.html">
+          <button class="game-button" data-game="3">
             <img src="games/design_delivery/assets/thumbnail.png" alt="Design Delivery Thumbnail">
-          </a>
+          </button>
         </div>
         <!-- Game 4 -->
         <div class="game-item" style="--index:3;">
-          <a href="games/syntax_sprint/index.html">
+          <button class="game-button" data-game="4">
             <img src="games/syntax_sprint/assets/thumbnail.png" alt="Syntax Sprint Thumbnail">
-          </a>
+          </button>
         </div>
         <!-- Game 5 -->
         <div class="game-item" style="--index:4;">
-          <a href="games/invoice_investigation/index.html">
+          <button class="game-button" data-game="5">
             <img src="games/invoice_investigation/assets/thumbnail.png" alt="Invoice Investigation Thumbnail">
-          </a>
+          </button>
         </div>
         <!-- Game 6 -->
         <div class="game-item" style="--index:5;">
-          <a href="games/venture_viper/index.html">
+          <button class="game-button" data-game="6">
             <img src="games/venture_viper/assets/thumbnail.png" alt="Venture Viper Thumbnail">
-          </a>
+          </button>
         </div>
         <!-- Game 7 -->
         <div class="game-item" style="--index:6;">
-          <a href="games/rat_attack/index.html">
+          <button class="game-button" data-game="7">
             <img src="games/rat_attack/assets/thumbnail.png" alt="Rat Attack Thumbnail">
-          </a>
+          </button>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal Overlay -->
+  <div id="modal-overlay" style="display: none;">
+    <div id="modal-content">
+      <img id="modal-image" src="" alt="Game Info">
+      <button id="play-button">Play</button>
     </div>
   </div>
 
