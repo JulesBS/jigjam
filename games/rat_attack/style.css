@@ -8,7 +8,7 @@ body {
 
 /* Game Container */
 #game-container {
-  position: relative; /* Add this to position the overlay relative to the container */
+  position: relative;
   width: 800px;
   height: 600px;
   margin: 0 auto;
@@ -26,11 +26,6 @@ body {
   height: 200px;
 }
 
-.pipe:nth-child(1) { left: 50px; }
-.pipe:nth-child(2) { left: 250px; }
-.pipe:nth-child(3) { left: 450px; }
-.pipe:nth-child(4) { left: 650px; }
-
 /* Pipe back */
 .pipe-back {
   position: absolute;
@@ -46,8 +41,7 @@ body {
   position: absolute;
   bottom: 0;
   width: 100px;
-  height: 100px;
-  background-image: url('assets/dev-head.png');
+  height: 150px; /* Changed height from 100px to 150px */
   background-size: cover;
   transition: bottom 0.2s ease;
   z-index: 2;
@@ -58,12 +52,11 @@ body {
 }
 
 .dev-head.pop-up {
-  bottom: 100px;
+  bottom: 100px; /* Adjusted to match the new height */
 }
 
 .dev-head.whacked {
-  background-image: url('assets/dev-head-whacked.png');
-  background-size: cover;
+  /* Optional styles for whacked state */
 }
 
 /* Pipe front */
@@ -94,7 +87,7 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10; /* Ensure it appears above other elements */
+  z-index: 9999; /* Ensure it appears above other elements */
 }
 
 #game-over-overlay.hidden {
