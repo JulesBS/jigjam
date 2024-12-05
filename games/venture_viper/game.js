@@ -75,7 +75,7 @@ function resizeCanvas() {
 function startGame() {
   gameOver = false;
   snakeSpeed = 200; // Reset snake speed
-  foodSpeedFactor = 0.3; // Food moves at 30% of snake speed
+  foodSpeedFactor = 0.4; // Food moves at 30% of snake speed
   foodSpeed = snakeSpeed / foodSpeedFactor; // Food speed is slower than snake
   lastSpeedIncreaseTime = performance.now();
   lastSnakeUpdateTime = 0;

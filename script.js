@@ -1,5 +1,3 @@
-// script.js
-
 // Toggle the central logo image on click
 document.getElementById('logo-image').addEventListener('click', function() {
   const logo = this;
