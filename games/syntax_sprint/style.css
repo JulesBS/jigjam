@@ -1,12 +1,18 @@
+/* Center the gameContainer both horizontally and vertically */
 body {
   margin: 0;
   padding: 0;
   background-color: #f0f0f0;
+  display: flex;                /* Use Flexbox */
+  justify-content: center;      /* Center horizontally */
+  align-items: center;          /* Center vertically */
+  height: 100vh;                /* Full viewport height */
+  font-family: Comic Sans MS, sans-serif;
 }
 
 #gameContainer {
   text-align: center;
-  margin-top: 50px;
+  /* Removed margin-top to allow Flexbox centering */
 }
 
 #menu, #gameOverScreen {
@@ -24,15 +30,15 @@ body {
 }
 
 .difficulty-selection img {
-  width: 150px;
-  height: 150px;
+  width: 200px;
+  height: 200px;
   margin: 0 20px;
   cursor: pointer;
   transition: transform 0.2s;
 }
 
 .difficulty-selection img:hover {
-  transform: scale(1.1);
+  transform: scale(1.2);
 }
 
 button {

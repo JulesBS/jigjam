@@ -235,7 +235,7 @@ function draw() {
 
   // Draw score and high score
   ctx.fillStyle = '#000';
-  ctx.font = '20px Arial';
+  ctx.font = '20px Comic Sans MS';
   ctx.fillText('Score: ' + score, 10, 30);
   ctx.fillText('High Score: ' + highScore, gameCanvas.width - 150, 30);
 }
