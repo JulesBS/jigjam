@@ -27,10 +27,10 @@ let effects = []; // Array to hold visual effects
 // Resize canvas to fit 80% of window width
 function resizeCanvas() {
   gameCanvas.width = window.innerWidth * 0.8;
-  if (gameCanvas.width > 800) {
-    gameCanvas.width = 800;
+  if (gameCanvas.width > 1200) {
+    gameCanvas.width = 1200;
   }
-  gameCanvas.height = 600;
+  gameCanvas.height = 800;
 }
 
 window.addEventListener('resize', resizeCanvas);
@@ -60,21 +60,28 @@ function wrapText(text, maxWidth) {
 }
 
 // Word lists based on difficulty
-const easyWords = ['Yes', 'No', 'Hello', 'Task 263', 'Thanks', 'No blocker'];
+const easyWords = ['Yes', 'No', 'Hello', 'Jira 263', 'Thanks', 'No blocker', 'good', 'Task 8628', 'Dev env off'];
 const mediumWords = [
-  'Good meeting, everyone',
+  'Good morning everyone',
   "That's sick",
-  'Love all this',
-  'Follow the rat',
-  'ARR looking good!',
-  'Jig lunch today!',
+  'That would be cool',
+  'Sounds good to me',
+  'No prob',
+  'Aaaah sorry Jules',
+  'I have a demo',
+  'Hey Jules is this text',
+  'This is latest build',
+  'Jig lunch today',
 ];
 const hardWords = [
   'We need to increase our MRR by optimizing the sales funnel',
-  "Let's schedule a meeting to discuss agile sprint planning and KPIs",
+  'iframe dom blocking with wildcard for top level domain or sub-domains ideally',
   'Our Q3 OKRs focus on customer retention and upselling strategies',
   'Cross-functional synergy is essential for maximizing ROI in our projects',
-  'Leveraging data analytics will drive better decision-making processes',
+  'The files name was L1 part 123  and L2 part 124 but would require internal changes in their processes',
+  'we can initiate the hubspot chat widget with javascript: https://community.hubspot.com/t5/APIs-Integrations/',
+  'the static/persistent URL element is 872 if you change the title, it redirects old versions',
+  '1-tap explosion would be far quicker for us to do, and removes some complexity',
   'Implementing AI solutions can streamline our operational workflows significantly',
 ];
 
@@ -129,7 +136,7 @@ function spawnWord() {
   const text = currentWordList[Math.floor(Math.random() * currentWordList.length)];
 
   // Wrap text into lines
-  const maxLineWidth = 250; // Adjust as needed
+  const maxLineWidth = 500; // Adjust as needed
   const lines = wrapText(text, maxLineWidth);
 
   const word = {
