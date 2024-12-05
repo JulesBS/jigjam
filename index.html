@@ -6,60 +6,61 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Welcome to JigJam Minigames!</h1>
-  <div class="game-list">
-    
-    <div class="game-item">
-      <a href="games/sales_fish/index.html">
-        <img src="games/sales_fish/assets/thumbnail.png" alt="Sales Fish Thumbnail">
-        <h2>Prospection Pond</h2>
-      </a>
-    </div>
-    
-    <div class="game-item">
-      <a href="games/kate_katcher/index.html">
-        <img src="games/kate_katcher/assets/thumbnail_kate.png" alt="Kate Katcher Thumbnail">
-        <h2>Frantic Frontend</h2>
-      </a>  
-    </div>
-  
-    <div class="game-item">
-      <a href="games/design_delivery/index.html">
-        <img src="games/design_delivery/assets/thumbnail.png" alt="Design Delivery Thumbnail">
-        <h2>Design Delivery</h2>
-      </a>
+  <div id="container">
+    <!-- Central Logo -->
+    <div id="central-logo">
+      <img src="assets/logo.png" alt="Logo" id="logo-image">
     </div>
 
-    <!-- Added Syntax Sprint Game -->
-    <div class="game-item">
-      <a href="games/syntax_sprint/index.html">
-        <img src="games/syntax_sprint/assets/thumbnail.png" alt="Syntax Sprint Thumbnail">
-        <h2>Syntax Sprint</h2>
-      </a>
+    <!-- Circle Container -->
+    <div id="circle-container">
+      <!-- Game Items -->
+      <!-- Game 1 -->
+      <div class="game-item" style="--index:0;">
+        <a href="games/sales_fish/index.html">
+          <img src="games/sales_fish/assets/thumbnail.png" alt="Prospection Pond Thumbnail">
+        </a>
+      </div>
+      <!-- Game 2 -->
+      <div class="game-item" style="--index:1;">
+        <a href="games/kate_katcher/index.html">
+          <img src="games/kate_katcher/assets/thumbnail_kate.png" alt="Frantic Frontend Thumbnail">
+        </a>
+      </div>
+      <!-- Game 3 -->
+      <div class="game-item" style="--index:2;">
+        <a href="games/design_delivery/index.html">
+          <img src="games/design_delivery/assets/thumbnail.png" alt="Design Delivery Thumbnail">
+        </a>
+      </div>
+      <!-- Game 4 -->
+      <div class="game-item" style="--index:3;">
+        <a href="games/syntax_sprint/index.html">
+          <img src="games/syntax_sprint/assets/thumbnail.png" alt="Syntax Sprint Thumbnail">
+        </a>
+      </div>
+      <!-- Game 5 -->
+      <div class="game-item" style="--index:4;">
+        <a href="games/invoice_investigation/index.html">
+          <img src="games/invoice_investigation/assets/thumbnail.png" alt="Invoice Investigation Thumbnail">
+        </a>
+      </div>
+      <!-- Game 6 -->
+      <div class="game-item" style="--index:5;">
+        <a href="games/venture_viper/index.html">
+          <img src="games/venture_viper/assets/thumbnail.png" alt="Venture Viper Thumbnail">
+        </a>
+      </div>
+      <!-- Game 7 -->
+      <div class="game-item" style="--index:6;">
+        <a href="games/rat_attack/index.html">
+          <img src="games/rat_attack/assets/thumbnail.png" alt="Rat Attack Thumbnail">
+        </a>
+      </div>
     </div>
-
-    <div class="game-item">
-      <a href="games/invoice_investigation/index.html">
-        <img src="games/invoice_investigation/assets/thumbnail.png" alt="Invoice Investigation Thumbnail">
-        <h2>Invoice Investigation</h2>
-      </a>
-    </div>
-
-
-    <div class="game-item">
-      <a href="games/venture_viper/index.html">
-        <img src="games/venture_viper/assets/thumbnail.png" alt="Invoice Investigation Thumbnail">
-        <h2>Venture Viper</h2>
-      </a>
-    </div>
-
-    <div class="game-item">
-      <a href="games/rat_attack/index.html">
-        <img src="games/rat_attack/assets/thumbnail.png" alt="Invoice Investigation Thumbnail">
-        <h2>Rat Attack</h2>
-      </a>
-    </div>
-
   </div>
+
+  <!-- Include JavaScript -->
+  <script src="script.js"></script>
 </body>
 </html>
