@@ -6,17 +6,17 @@ body {
   font-family: Arial, sans-serif;
 }
 
+/* Game Container */
 #game-container {
-  position: relative;
+  position: relative; /* Add this to position the overlay relative to the container */
   width: 800px;
   height: 600px;
   margin: 0 auto;
   background-image: url('assets/background.png');
   background-size: cover;
+  background-position: center;
   overflow: hidden;
 }
-
-/* Remove the rat-container styles */
 
 /* Pipe Styles */
 .pipe {
@@ -85,15 +85,16 @@ body {
 
 /* Game Over Overlay */
 #game-over-overlay {
-  position: absolute;
+  position: absolute; /* Position absolutely within the game container */
   top: 0;
   left: 0;
-  width: 800px;
-  height: 600px;
+  width: 100%; /* Cover the entire game container */
+  height: 100%;
   background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 10; /* Ensure it appears above other elements */
 }
 
 #game-over-overlay.hidden {

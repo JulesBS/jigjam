@@ -7,24 +7,23 @@
 <body>
   <div id="game-container">
     <!-- Pipes and developer heads will be dynamically added here -->
+
+    <!-- Game Over Overlay -->
+    <div id="game-over-overlay" class="hidden">
+      <div id="game-over-content">
+        <h1>Game Over!</h1>
+        <p>Your Score: <span id="final-score"></span></p>
+        <p>High Score: <span id="final-high-score"></span></p>
+        <p>Press Enter to Try Again</p>
+      </div>
+    </div>
   </div>
-  <div id="rat-container">
-    <img src="assets/giant-rat.png" alt="Giant Rat" id="giant-rat">
-  </div>
+
   <div id="scoreboard">
     Score: <span id="score">0</span> | High Score: <span id="high-score">0</span>
   </div>
   <div id="timer">
     Time Left: <span id="time-left">60</span>s
-  </div>
-  <!-- Game Over Overlay -->
-  <div id="game-over-overlay" class="hidden">
-    <div id="game-over-content">
-      <h1>Game Over!</h1>
-      <p>Your Score: <span id="final-score"></span></p>
-      <p>High Score: <span id="final-high-score"></span></p>
-      <p>Press Enter to Try Again</p>
-    </div>
   </div>
   <script src="game.js"></script>
 </body>
