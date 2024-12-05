@@ -17,7 +17,7 @@ let currentWordList = [];
 let gameInterval;
 let wordSpawnInterval;
 let wordSpeed = 1;
-let wordFrequency = 2000; // Time in milliseconds between new words
+let wordFrequency = 2500; // Time in milliseconds between new words
 let isGameOver = false;
 let score = 0;
 let highScore = parseInt(localStorage.getItem('syntaxSprintHighScore')) || 0;

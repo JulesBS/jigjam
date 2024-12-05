@@ -387,7 +387,7 @@ function draw() {
 
     // Draw timer and score
     ctx.fillStyle = '#000000';
-    ctx.font = '20px Arial';
+    ctx.font = '20px Comic Sans MS';
     ctx.fillText('Time: ' + (elapsedTime / 1000).toFixed(2) + 's', 10, 30);
     ctx.fillText('Assets Delivered: ' + assetsDelivered + '/' + totalAssets, 10, 60);
 
@@ -400,15 +400,15 @@ function draw() {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = '#ffffff';
-    ctx.font = '40px Arial';
+    ctx.font = '40px Comic Sans MS';
     if (gameWon) {
       ctx.fillText('You Win!', canvas.width / 2 - 80, canvas.height / 2 - 60);
-      ctx.font = '30px Arial';
+      ctx.font = '30px Comic Sans MS';
       ctx.fillText('Your Time: ' + (elapsedTime / 1000).toFixed(2) + 's', canvas.width / 2 - 100, canvas.height / 2 - 20);
       ctx.fillText('Best Time: ' + (highScore / 1000).toFixed(2) + 's', canvas.width / 2 - 100, canvas.height / 2 + 20);
     } else {
       ctx.fillText('Game Over!', canvas.width / 2 - 100, canvas.height / 2 - 60);
-      ctx.font = '30px Arial';
+      ctx.font = '30px Comic Sans MS';
       ctx.fillText('You were caught!', canvas.width / 2 - 90, canvas.height / 2 - 20);
     }
     ctx.fillText('Press Enter to Restart', canvas.width / 2 - 130, canvas.height / 2 + 60);

@@ -292,7 +292,7 @@ function draw() {
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = `${gridSize}px Arial`;
+    ctx.font = `${gridSize}px Comic Sans MS`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
